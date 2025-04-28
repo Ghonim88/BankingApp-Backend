@@ -1,4 +1,4 @@
-package com.inholland.bank.dto;
+package com.inholland.bank.model.dto;
 //import jakarta.persistence.Column;
 //import jakarta.validation.constraints.NotNull;
 import lombok.Data;
