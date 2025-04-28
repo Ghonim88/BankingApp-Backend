@@ -17,7 +17,7 @@ public class UserService {
   private UserRepository userRepository;
   @Autowired
   private  CustomerRepository customerRepository;
-  private  PasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
 
   @Autowired
   public UserService(UserRepository userRepository, CustomerRepository customerRepository, PasswordEncoder passwordEncoder) {
@@ -26,7 +26,7 @@ public class UserService {
     this.passwordEncoder = passwordEncoder;
   }
   public User registerNewUser(User user) throws Exception {
-    if (user.() == null || user.getPassword() == null) {
+    if (user.getEmail() == null || user.getPassword() == null) {
         throw new Exception("Email and password cannot be null");
     }
 
