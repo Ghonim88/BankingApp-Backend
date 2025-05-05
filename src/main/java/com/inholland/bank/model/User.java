@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")
+@Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,6 +27,9 @@ public class User {
 
     @Column(name = "last_name", nullable = false)
     private String lastName;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "userRole", nullable = false)
+    protected UserRole userRole;
     
     
   

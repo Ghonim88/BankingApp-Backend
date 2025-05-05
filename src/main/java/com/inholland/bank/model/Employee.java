@@ -12,10 +12,6 @@ import jakarta.persistence.*;
 @NoArgsConstructor
 @PrimaryKeyJoinColumn(name = "userId")
 public class Employee extends User {
-
-    @Column(name = "userRole", nullable = false)
-    private UserRole userRole; 
-    
     @PrePersist
     public void prePersist() { //set default userRole to EMPLOYEE
         // if userRole is null, set it to EMPLOYEE
