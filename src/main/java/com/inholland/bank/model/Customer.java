@@ -29,9 +29,6 @@ public class Customer extends User{
     private double transactionLimit;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "userRole", nullable = false)
-    private UserRole userRole;
-    @Enumerated(EnumType.STRING)
     @Column(name = "accountStatus", nullable = false)
     private AccountStatus accountStatus;
 

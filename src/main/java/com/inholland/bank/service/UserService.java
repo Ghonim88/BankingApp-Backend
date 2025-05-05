@@ -1,5 +1,6 @@
 package com.inholland.bank.service;
 
+import com.inholland.bank.model.Customer;
 import org.springframework.stereotype.Service;
 import com.inholland.bank.model.User;
 import com.inholland.bank.repository.UserRepository;
@@ -16,30 +17,36 @@ public class UserService {
   @Autowired
   private UserRepository userRepository;
   @Autowired
-  private  CustomerRepository customerRepository;
   private final PasswordEncoder passwordEncoder;
 
   @Autowired
-  public UserService(UserRepository userRepository, CustomerRepository customerRepository, PasswordEncoder passwordEncoder) {
+  public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
     this.userRepository = userRepository;
-    this.customerRepository = customerRepository;
     this.passwordEncoder = passwordEncoder;
   }
-  public User registerNewUser(User user) throws Exception {
-    if (user.getEmail() == null || user.getPassword() == null) {
-        throw new Exception("Email and password cannot be null");
+  public Optional<User> login(String email, String password) {
+    // Fetch customer by email
+    Optional<User> userOptional = userRepository.findByEmail(email);
+
+    if (userOptional.isPresent()) {
+      User user = userOptional.get();
+
+      // Check if the password matches
+      if (passwordEncoder.matches(password, user.getPassword())) {
+        // Password matches, return the customer
+        return Optional.of(user);
+      } else {
+        // Password doesn't match
+        return Optional.empty();
+      }
     }
 
-    // Check if the email already exists in the database
-    if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-        throw new Exception("Email already exists");
-    }
+    // Customer not found
+    return Optional.empty();
+  }
+  public User findByEmail(String email) {
+    return userRepository.findByEmail(email).orElse(null);
+  }
 
-    // Encrypt password before saving
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-    // Save the user
-    return userRepository.save(user);
-}
 
 }
