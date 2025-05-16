@@ -33,7 +33,7 @@ public class AuthController {
     try {
       // 🔐 Authenticate user using Spring Security
       Authentication authentication = authenticationManager.authenticate(
-          new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword())
+          new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()) //UserDetailsServiceImpl get in place
       );
 
       // ✅ Generate token using the authenticated user's details
@@ -43,11 +43,6 @@ public class AuthController {
       Map<String, Object> response = new HashMap<>();
       response.put("token", token);
 
-      //for debugging purposes
-//      return buildRoleBasedResponse(
-//          customUserDetails.getUser().getUserId(),
-//          customUserDetails.getUser().getUserRole(),
-//          response);
       return ResponseEntity.ok(response); // Only the token is sent in the response
 
     } catch (BadCredentialsException ex) {
