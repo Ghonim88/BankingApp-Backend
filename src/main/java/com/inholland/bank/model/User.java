@@ -3,9 +3,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import jakarta.persistence.*;
+import jakarta.persistence.Index;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+    @Index(name = "idx_email", columnList = "email")
+})
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
@@ -14,6 +17,7 @@ public class User {
   
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     private Long userId;
 
     @Column(name = "email", unique = true, nullable = false)

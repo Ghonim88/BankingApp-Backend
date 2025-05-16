@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@PrimaryKeyJoinColumn(name = "userId")
+@PrimaryKeyJoinColumn(name = "user_id", referencedColumnName = "user_id")
 public class Customer extends User{
 
     @Column(name = "phone_number", unique = true, nullable = false)
@@ -37,14 +37,14 @@ public class Customer extends User{
     private List<Account> accounts;
 
     @PrePersist
-    public void prePersist() { //set default userRole to CUSTOMER TODO: CHECK WITH DANIEL ABOUT THIS PROCESS
+    public void prePersist() { //set default userRole to CUSTOMER
         // if userRole is null, set it to CUSTOMER
         // this is to ensure that the userRole is always set to CUSTOMER when a new customer is created
         if (userRole == null) {
             this.userRole = UserRole.CUSTOMER;
         }
         // Set default AccountType to CHECKING if not provided
-        if (accountType == null) {
+        if (accountType == null) { // so don't create an account until you get the approval !!!!!!!!!
             this.accountType = AccountType.CHECKING;
         }
         // Set default transactionLimit to 1000 if not provided

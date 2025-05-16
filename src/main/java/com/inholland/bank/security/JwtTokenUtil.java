@@ -2,6 +2,8 @@ package com.inholland.bank.security;
 
 import com.inholland.bank.model.User;
 import io.jsonwebtoken.*;
+
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 @Component
 public class JwtTokenUtil {
@@ -22,8 +25,9 @@ public class JwtTokenUtil {
   @Value("${JWT_EXPIRATION_MS}")
   private int jwtExpirationMs;
   // This will generate a 512-bit key for HS512
-  private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-
+  private SecretKey getSigningKey() {
+    return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+  }
 
   public String generateToken(Authentication authentication) {
     CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -35,7 +39,7 @@ public class JwtTokenUtil {
         .claim("userId", userDetails.getUser().getUserId())
         .setIssuedAt(new Date())
         .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-        .signWith(SECRET_KEY)
+        .signWith(getSigningKey())
         .compact();
   }
 
@@ -52,8 +56,13 @@ public class JwtTokenUtil {
     return claimsResolver.apply(claims);
   }
 
+
   private Claims getAllClaimsFromToken(String token) {
-    return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
+    return Jwts.parserBuilder()
+        .setSigningKey(getSigningKey())
+        .build()
+        .parseClaimsJws(token)
+        .getBody();
   }
 
   private Boolean isTokenExpired(String token) {
