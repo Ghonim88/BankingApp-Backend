@@ -25,12 +25,6 @@ public class Customer extends User{
     @Column(name = "AccountType", nullable = false)
     private AccountType accountType;
 
-    @Column(name = "transactionLimit", nullable = false)
-    private double transactionLimit;
-
-    @Column(name = "daily_transfer_limit", nullable = false)
-    private double dailyTransferLimit;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "accountStatus", nullable = false)
     private AccountStatus accountStatus;
@@ -49,10 +43,6 @@ public class Customer extends User{
         // Set default AccountType to CHECKING if not provided
         if (accountType == null) { // so don't create an account until you get the approval !!!!!!!!!
             this.accountType = AccountType.CHECKING;
-        }
-        // Set default transactionLimit to 1000 if not provided
-        if (transactionLimit == 0) {
-            this.transactionLimit = 1000;
         }
         if(accountStatus == null){
             this.accountStatus = AccountStatus.Pending; // Set default account status to PENDING waiting for employee approval

@@ -61,8 +61,15 @@ public class EmployeeService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        return transactionRepository.findByCustomer(customer);
+        List<Account> accounts = accountRepository.findByCustomer(customer);
+
+        return accounts.stream()
+                .flatMap(account ->
+                        transactionRepository.findByAccount(account).stream()
+                )
+                .toList();
     }
+
 
     public List<Customer> getUnapprovedCustomers() {
         return customerRepository.findByAccountStatus(AccountStatus.Pending);
@@ -76,51 +83,68 @@ public class EmployeeService {
         customerRepository.save(customer);
     }
 
-    public void transferFundsBetweenCustomers(String fromIban, String toIban, double amount) {
+    public void transferFundsBetweenAccounts(String fromIban, String toIban, double amount) {
+        validateAmount(amount);
+
+        Account from = getAccountOrThrow(fromIban, "Source account not found");
+        Account to = getAccountOrThrow(toIban, "Destination account not found");
+
+        validateSufficientBalance(from, amount);
+        validateAbsoluteLimit(from, amount);
+        validateDailyLimit(from, amount);
+
+        performTransfer(from, to, amount);
+        recordTransaction(from, fromIban, toIban, amount);
+    }
+
+    private void validateAmount(double amount) {
         if (amount <= 0)
             throw new IllegalArgumentException("Amount must be greater than zero");
+    }
 
-        Account from = accountRepository.findByIban(fromIban)
-                .orElseThrow(() -> new RuntimeException("Source account not found"));
-        Account to = accountRepository.findByIban(toIban)
-                .orElseThrow(() -> new RuntimeException("Destination account not found"));
+    private Account getAccountOrThrow(String iban, String errorMsg) {
+        return accountRepository.findByIban(iban)
+                .orElseThrow(() -> new RuntimeException(errorMsg));
+    }
 
+    private void validateSufficientBalance(Account from, double amount) {
         if (from.getBalance() < amount)
             throw new IllegalArgumentException("Insufficient balance in source account");
+    }
 
-        Customer sender = from.getCustomer();
+    private void validateAbsoluteLimit(Account from, double amount) {
+        if (amount > from.getAbsoluteTransferLimit())
+            throw new IllegalArgumentException("Amount exceeds absolute transfer limit for this account");
+    }
 
-        // 1. Absolute Limit Check
-        if (amount > sender.getTransactionLimit())
-            throw new IllegalArgumentException("Amount exceeds absolute transfer limit");
-
-        // 2. Daily Limit Check
+    private void validateDailyLimit(Account from, double amount) {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime now = LocalDateTime.now();
 
-        List<Transaction> todaysTransactions = transactionRepository.findByCustomerAndCreatedAtBetween(sender, startOfDay, now);
-
+        List<Transaction> todaysTransactions = transactionRepository.findByAccountAndCreatedAtBetween(from, startOfDay, now);
         double totalTransferredToday = todaysTransactions.stream()
                 .mapToDouble(Transaction::getTransactionAmount)
                 .sum();
 
-        if (totalTransferredToday + amount > sender.getDailyTransferLimit())
-            throw new IllegalArgumentException("Amount exceeds daily transfer limit");
+        if (totalTransferredToday + amount > from.getDailyTransferLimit())
+            throw new IllegalArgumentException("Amount exceeds daily transfer limit for this account");
+    }
 
-        // Perform Transfer
+    private void performTransfer(Account from, Account to, double amount) {
         from.setBalance(from.getBalance() - amount);
         to.setBalance(to.getBalance() + amount);
         accountRepository.save(from);
         accountRepository.save(to);
+    }
 
+    private void recordTransaction(Account from, String fromIban, String toIban, double amount) {
         Transaction transaction = new Transaction();
-        transaction.setCustomer(sender);
+        transaction.setAccount(from);
         transaction.setSenderIban(fromIban);
         transaction.setReceiverIban(toIban);
         transaction.setTransactionAmount(amount);
-        transaction.setCreatedAt(now);
+        transaction.setCreatedAt(LocalDateTime.now());
         transactionRepository.save(transaction);
     }
-
 
 }

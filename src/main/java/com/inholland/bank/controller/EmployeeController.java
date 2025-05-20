@@ -40,7 +40,7 @@ public class EmployeeController {
 
     @PostMapping("/transfer")
     public String transferBetweenAccounts(@RequestBody TransferRequestDTO request) {
-        employeeService.transferFundsBetweenCustomers(
+        employeeService.transferFundsBetweenAccounts(
                 request.getFromIban(),
                 request.getToIban(),
                 request.getAmount()

@@ -17,8 +17,8 @@ public class Transaction {
     private Long transactionId;
 
     @ManyToOne
-    @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer;
+    @JoinColumn(name = "accountId", nullable = false)
+    private Account account;
 
     @Column(nullable = false)
     private String senderIban;
