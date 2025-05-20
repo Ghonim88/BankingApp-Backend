@@ -50,12 +50,4 @@ public class CustomerService {
       return customerRepository.save(customer);
     }
 
-    public Optional<Customer> findById(Long id) {
-        return customerRepository.findById(id);
-    }
-
-
-  public Customer findByEmail(String email) {
-    return customerRepository.findByEmail(email); // assuming repository returns Optional
-  }
 }

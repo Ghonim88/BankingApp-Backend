@@ -1,19 +1,14 @@
 package com.inholland.bank.security;
 
-import com.inholland.bank.model.User;
 import io.jsonwebtoken.*;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.security.Keys;
-
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 @Component
 public class JwtTokenUtil {
