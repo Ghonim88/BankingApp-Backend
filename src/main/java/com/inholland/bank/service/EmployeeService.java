@@ -22,7 +22,7 @@ public class EmployeeService {
 
         this.passwordEncoder = passwordEncoder;
     }
-    public Employee registerNewEmployee(EmployeeDTO employeeDto) {
+    public Employee registerNewEmployee(EmployeeDTO employeeDto) { //TODO: check if you neet to change to void
         // Hash the password before saving
         String hashedPassword = passwordEncoder.encode(employeeDto.getPassword());
         employeeDto.setPassword(hashedPassword);
