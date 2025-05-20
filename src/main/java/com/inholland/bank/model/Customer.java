@@ -1,4 +1,5 @@
 package com.inholland.bank.model;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,9 +26,6 @@ public class Customer extends User{
     @Column(name = "AccountType", nullable = false)
     private AccountType accountType;
 
-    @Column(name = "transactionLimit", nullable = false)
-    private double transactionLimit;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "accountStatus", nullable = false)
     private AccountStatus accountStatus;
@@ -47,10 +45,7 @@ public class Customer extends User{
         if (accountType == null) { // so don't create an account until you get the approval !!!!!!!!!
             this.accountType = AccountType.CHECKING;
         }
-        // Set default transactionLimit to 1000 if not provided
-        if (transactionLimit == 0) {
-            this.transactionLimit = 1000;
-        }
+
         if(accountStatus == null){
             this.accountStatus = AccountStatus.Pending; // Set default account status to PENDING waiting for employee approval
         }
