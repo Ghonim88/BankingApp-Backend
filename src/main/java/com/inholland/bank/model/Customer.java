@@ -28,6 +28,9 @@ public class Customer extends User{
     @Column(name = "transactionLimit", nullable = false)
     private double transactionLimit;
 
+    @Column(name = "daily_transfer_limit", nullable = false)
+    private double dailyTransferLimit;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "accountStatus", nullable = false)
     private AccountStatus accountStatus;
