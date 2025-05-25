@@ -26,4 +26,6 @@ public class CustomerDTO extends UserDTO{
   private double transactionLimit;
   @NotNull
   private AccountStatus accountStatus;
+
+
 }

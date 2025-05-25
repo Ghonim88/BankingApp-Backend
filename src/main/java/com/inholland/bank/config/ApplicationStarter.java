@@ -19,7 +19,7 @@ public class ApplicationStarter implements ApplicationRunner {
   public void run(ApplicationArguments args) throws Exception {
     EmployeeDTO employeeDTO = new EmployeeDTO();
     employeeDTO.setEmail("john@gmail.com");
-    employeeDTO.setPassword("password");
+    employeeDTO.setPassword("Password11!");
     employeeDTO.setFirstName("John");
     employeeDTO.setLastName("Doe");
     employeeService.registerNewEmployee(employeeDTO);
