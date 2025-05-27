@@ -1,19 +1,26 @@
 package com.inholland.bank.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 
 @Configuration
 public class SecurityConfig {
+  private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+  public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+  }
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
@@ -32,15 +39,13 @@ public class SecurityConfig {
         .requestMatchers("/h2-console/**").permitAll() // Allow unrestricted access to H2 console
         .anyRequest().permitAll()
         )
-        // Disable CSRF only for the H2 console (alternative to global disable above — useful if you want CSRF elsewhere)
-        .csrf(csrf -> csrf
-                    .ignoringRequestMatchers("/h2-console/**").disable()
-         )
-        // Allow H2 console to be displayed in a frame (needed because modern browsers block framing by default)
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless sessions
         .headers(headers -> headers
             .addHeaderWriter(new XFrameOptionsHeaderWriter(
-                XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN))
+                XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN)) // Allow H2 console in frames
         );
+
 
     return http.build();
   }
