@@ -20,8 +20,9 @@ public class CustomerDTO extends UserDTO{
   private String phoneNumber;
   @NotBlank
   private String bsn;
-  @NotNull
-  private AccountType accountType;
+  //TODO: delete if group agrees: customer doesn't need account type, only account needs account type
+  //@NotNull
+  //private AccountType accountType;
   @NotNull
   private double transactionLimit;
   @NotNull

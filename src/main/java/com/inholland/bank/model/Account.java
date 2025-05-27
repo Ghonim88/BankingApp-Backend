@@ -20,6 +20,7 @@ public class Account {
 
   @Column(name = "balance", nullable = false)
   private double balance;
+  //TODO: do we really need currency? everything should be in euros anyway, so i don t see the point in having this
   private String currency;
 
   @Column(name = "iban", unique = true, nullable = false)
@@ -51,14 +52,14 @@ public class Account {
     // Example: "NL" for the Netherlands
     String countryCode = "NL";
 
-    // Generate a random BBAN (Basic Bank Account Number)
-    String bban = UUID.randomUUID().toString().replace("-", "").substring(0, 10); // A 10-digit number
+    // Generate a random IBAN (Basic Bank Account Number)
+    String iban = UUID.randomUUID().toString().replace("-", "").substring(0, 10); // A 10-digit number
 
     // The checksum can be calculated based on the country code and BBAN. For simplicity, here we will generate it as a random value.
     String checksum = String.format("%02d", (int) (Math.random() * 99));  // Generate a two-digit checksum (00-99)
 
     // Concatenate the country code, checksum, and BBAN to form the IBAN
-    return countryCode + checksum + bban;
+    return countryCode + checksum + iban;
   }
 
   // Constructors, getters, and setters
