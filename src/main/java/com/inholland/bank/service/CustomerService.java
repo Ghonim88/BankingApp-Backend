@@ -48,6 +48,7 @@ public class CustomerService {
     customer.setPhoneNumber(customerDto.getPhoneNumber());
     customer.setBsn(customerDto.getBsn());
     customer.setPassword(customerDto.getPassword());
+    customer.setUserRole(customerDto.getUserRole());
 
     return customerRepository.save(customer);
   }
@@ -68,7 +69,7 @@ public class CustomerService {
     dto.setPhoneNumber(customer.getPhoneNumber());
     dto.setBsn(customer.getBsn());
     dto.setAccountStatus(customer.getAccountStatus());
-    // Add other mappings as needed
+    dto.setUserRole(customer.getUserRole());
     return dto;
   }
   public CustomerDTO getCustomerById(Long customerId) {
