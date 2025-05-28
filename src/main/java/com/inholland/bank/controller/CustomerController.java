@@ -1,15 +1,11 @@
 package com.inholland.bank.controller;
 
-import com.inholland.bank.model.Customer;
 import com.inholland.bank.model.dto.CustomerDTO;
 import com.inholland.bank.service.CustomerService;
 import com.inholland.bank.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,14 +21,31 @@ public class CustomerController {
 
     @GetMapping
     public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
-        List<CustomerDTO> customers = customerService.getAllCustomers();
-        return ResponseEntity.ok(customers);
+        try {
+            List<CustomerDTO> customers = customerService.getAllCustomers();
+            return new ResponseEntity<>(customers, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping("/{customerId}")
     public ResponseEntity<CustomerDTO> getCustomerById(@PathVariable Long customerId) {
-        CustomerDTO customer = customerService.getCustomerById(customerId);
-        return ResponseEntity.ok(customer);
+        try {
+            CustomerDTO customer = customerService.getCustomerById(customerId);
+            return new ResponseEntity<>(customer, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<CustomerDTO> updateCustomer(@PathVariable Long id, @RequestBody CustomerDTO customerDTO) {
+        try {
+            CustomerDTO updatedCustomer = customerService.updateAccountStatus(id, customerDTO.getAccountStatus());
+            return new ResponseEntity<>(updatedCustomer, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+    }
 }

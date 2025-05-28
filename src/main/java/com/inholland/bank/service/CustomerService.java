@@ -4,6 +4,7 @@ import com.inholland.bank.exceptions.BsnAlreadyExistsException;
 import com.inholland.bank.exceptions.CustomerNotFoundException;
 import com.inholland.bank.exceptions.EmailAlreadyExistsException;
 import com.inholland.bank.exceptions.PhoneAlreadyExistsException;
+import com.inholland.bank.model.AccountStatus;
 import com.inholland.bank.model.dto.CustomerDTO;
 import org.springframework.stereotype.Service;
 import com.inholland.bank.model.Customer;
@@ -48,16 +49,26 @@ public class CustomerService {
     customer.setPhoneNumber(customerDto.getPhoneNumber());
     customer.setBsn(customerDto.getBsn());
     customer.setPassword(customerDto.getPassword());
-    customer.setUserRole(customerDto.getUserRole());
+    customer.setUserRole(customerDto.getUserRole()); // should we set here the user role to customer so that we don t have duplicate code in customer and employee for null user role?
 
     return customerRepository.save(customer);
+  }
+
+  public CustomerDTO updateAccountStatus(Long customerId, AccountStatus newStatus) {
+    Customer customer = customerRepository.findById(customerId)
+            .orElseThrow(() -> new CustomerNotFoundException(customerId));
+
+    customer.setAccountStatus(newStatus);
+    Customer updated = customerRepository.save(customer);
+
+    return convertToDTO(updated);
   }
 
   public List<CustomerDTO> getAllCustomers() {
     List<Customer> customers = customerRepository.findAll();
     return customers.stream()
             .map(this::convertToDTO)
-            .toList(); // or use .collect(Collectors.toList()) if you're on Java < 16
+            .toList();
   }
 
   private CustomerDTO convertToDTO(Customer customer) {
@@ -72,6 +83,7 @@ public class CustomerService {
     dto.setUserRole(customer.getUserRole());
     return dto;
   }
+
   public CustomerDTO getCustomerById(Long customerId) {
     Customer customer = customerRepository.findById(customerId)
             .orElseThrow(() -> new CustomerNotFoundException(customerId));

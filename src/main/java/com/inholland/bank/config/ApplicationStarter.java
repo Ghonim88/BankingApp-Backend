@@ -9,21 +9,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApplicationStarter implements ApplicationRunner {
 
-  private final EmployeeService employeeService;
+  //private final EmployeeService employeeService;
 
-  public ApplicationStarter(EmployeeService employeeService) {
-    this.employeeService = employeeService;
+//  public ApplicationStarter(EmployeeService employeeService) {
+//    this.employeeService = employeeService;
+//  }
+private final DatabaseSeeder seeder;
+
+  public ApplicationStarter(DatabaseSeeder seeder) {
+    this.seeder = seeder;
   }
 
   @Override
   public void run(ApplicationArguments args) throws Exception {
-    EmployeeDTO employeeDTO = new EmployeeDTO();
-    employeeDTO.setEmail("john@gmail.com");
-    employeeDTO.setPassword("Password11!");
-    employeeDTO.setFirstName("John");
-    employeeDTO.setLastName("Doe");
-    employeeService.registerNewEmployee(employeeDTO);
-
+//    EmployeeDTO employeeDTO = new EmployeeDTO();
+//    employeeDTO.setEmail("john@gmail.com");
+//    employeeDTO.setPassword("Password11!");
+//    employeeDTO.setFirstName("John");
+//    employeeDTO.setLastName("Doe");
+//    employeeService.registerNewEmployee(employeeDTO);
+    seeder.seedEmployees();
+    seeder.seedCustomers();
 
   }
 }
