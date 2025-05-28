@@ -4,6 +4,7 @@ import com.inholland.bank.exceptions.BsnAlreadyExistsException;
 import com.inholland.bank.exceptions.CustomerNotFoundException;
 import com.inholland.bank.exceptions.EmailAlreadyExistsException;
 import com.inholland.bank.exceptions.PhoneAlreadyExistsException;
+import com.inholland.bank.model.AccountStatus;
 import com.inholland.bank.model.dto.CustomerDTO;
 import org.springframework.stereotype.Service;
 import com.inholland.bank.model.Customer;
@@ -53,11 +54,21 @@ public class CustomerService {
     return customerRepository.save(customer);
   }
 
+  public CustomerDTO updateAccountStatus(Long customerId, AccountStatus newStatus) {
+    Customer customer = customerRepository.findById(customerId)
+            .orElseThrow(() -> new CustomerNotFoundException(customerId));
+
+    customer.setAccountStatus(newStatus);
+    Customer updated = customerRepository.save(customer);
+
+    return convertToDTO(updated);
+  }
+
   public List<CustomerDTO> getAllCustomers() {
     List<Customer> customers = customerRepository.findAll();
     return customers.stream()
             .map(this::convertToDTO)
-            .toList(); // or use .collect(Collectors.toList()) if you're on Java < 16
+            .toList();
   }
 
   private CustomerDTO convertToDTO(Customer customer) {
@@ -72,6 +83,7 @@ public class CustomerService {
     dto.setUserRole(customer.getUserRole());
     return dto;
   }
+
   public CustomerDTO getCustomerById(Long customerId) {
     Customer customer = customerRepository.findById(customerId)
             .orElseThrow(() -> new CustomerNotFoundException(customerId));
