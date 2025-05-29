@@ -6,10 +6,7 @@ import com.inholland.bank.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,16 +17,25 @@ public class AccountController {
     @Autowired
     private AccountService accountService;
 
-@PostMapping
-public ResponseEntity<List<AccountDTO>> createAccountsForCustomer(@RequestBody List<AccountDTO> accountDTOs) {
-    try {
-        List<Account> savedAccounts = accountService.createAccounts(accountDTOs);
-        List<AccountDTO> response = savedAccounts.stream()
-                .map(accountService::convertToDTO)
-                .toList();
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
-    } catch (Exception e) {
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    @PostMapping
+    public ResponseEntity<List<AccountDTO>> createAccountsForCustomer(@RequestBody List<AccountDTO> accountDTOs) {
+        try {
+            List<Account> savedAccounts = accountService.createAccounts(accountDTOs);
+            List<AccountDTO> response = savedAccounts.stream()
+                    .map(accountService::convertToDTO)
+                    .toList();
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
     }
-}
+    @GetMapping("/generate-iban")
+    public ResponseEntity<String> generatePreviewIban() {
+        try {
+            String iban = accountService.generateUniqueIban();
+            return new ResponseEntity<>(iban, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+    }
 }
