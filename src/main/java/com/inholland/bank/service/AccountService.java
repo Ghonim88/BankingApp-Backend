@@ -60,7 +60,14 @@ public class AccountService {
         account.setAbsoluteTransferLimit(dto.getAbsoluteTransferLimit());
         account.setBalance(dto.getBalance());
         //account.setCurrency("EUR");
-        account.setIban(generateUniqueIban());
+        //account.setIban(generateUniqueIban());
+
+        //if given an iban, use it, otherwise generate new
+        if (dto.getIban() != null && !dto.getIban().isEmpty()) {
+            account.setIban(dto.getIban());
+        } else {
+            account.setIban(generateUniqueIban());
+        }
 
         Customer customer = customerRepository.findById(dto.getCustomerId())
                 .orElseThrow(() -> new CustomerNotFoundException(dto.getCustomerId()));
