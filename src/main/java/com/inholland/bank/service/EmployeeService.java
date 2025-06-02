@@ -1,6 +1,7 @@
 package com.inholland.bank.service;
 
 import com.inholland.bank.model.Employee;
+import com.inholland.bank.model.UserRole;
 import com.inholland.bank.model.dto.EmployeeDTO;
 import com.inholland.bank.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ public class EmployeeService {
         employee.setLastName(employeeDto.getLastName());
         employee.setEmail(employeeDto.getEmail());
         employee.setPassword(employeeDto.getPassword());
+        employee.setUserRole(UserRole.EMPLOYEE);
 
       return employeeRepository.save(employee);
     }

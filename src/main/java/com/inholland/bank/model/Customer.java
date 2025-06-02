@@ -21,12 +21,6 @@ public class Customer extends User{
     @Column(name = "BSN",unique = true, nullable = false)
     private String bsn;
 
-    // delete after approved by everyone: account type should be in account only, not in customer
-    //@Enumerated(EnumType.STRING)
-
-    //@Column(name = "AccountType", nullable = false)
-   // private AccountType accountType;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "accountStatus", nullable = false)
     private AccountStatus accountStatus;
@@ -45,9 +39,7 @@ public class Customer extends User{
         }
         // Set default AccountType to CHECKING if not provided
         //TODO: i don't think it s necessary, the admin will always add the account type, if group agrees, delete
-       // if (accountType == null) { // so don't create an account until you get the approval !!!!!!!!!
-        //    this.accountType = AccountType.CHECKING;
-       // }
+
 
         if(accountStatus == null){
             this.accountStatus = AccountStatus.Pending; // Set default account status to PENDING waiting for employee approval
