@@ -3,6 +3,7 @@ package com.inholland.bank.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,7 +28,7 @@ public class Transaction {
     private String receiverIban;
 
     @Column(nullable = false)
-    private double transactionAmount;
+    private BigDecimal transactionAmount;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

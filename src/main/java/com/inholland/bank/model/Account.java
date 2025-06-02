@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -17,16 +18,17 @@ public class Account {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long accountId;
 
-
-  @Column(name = "balance", nullable = false)
-  private double balance;
-  private String currency;
+  @Column(name = "balance", nullable = false, precision = 19, scale = 4)
+  private BigDecimal balance;
 
   @Column(name = "iban", unique = true, nullable = false)
   private String iban;
 
-    private int dailyTransferLimit;
-    private int absoluteTransferLimit;
+  @Column(name = "daily_transfer_limit", nullable = false, precision = 19, scale = 4)
+  private BigDecimal dailyTransferLimit;
+
+  @Column(name = "absolute_transfer_limit", nullable = false, precision = 19, scale = 4)
+  private BigDecimal absoluteTransferLimit;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "account_type", nullable = false)
@@ -40,10 +42,9 @@ public class Account {
     this.accountType = accountType;
     this.customer = customer;
     this.iban = generateIBAN();  // Generate unique IBAN
-    this.balance = 0.0;  // Set initial balance to 0
-    this.currency = "EUR"; // Set default currency to Euro
-    this.dailyTransferLimit = 5000; // Default daily transfer limit
-    this.absoluteTransferLimit = 10000;
+    this.balance = BigDecimal.ZERO;                  // Set initial balance to 0
+    this.dailyTransferLimit = BigDecimal.valueOf(5000);   // Default daily transfer limit
+    this.absoluteTransferLimit = BigDecimal.valueOf(10000); // Default absolute transfer limit
   }
 
   // Method to generate a unique IBAN for each account

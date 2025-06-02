@@ -4,6 +4,7 @@ import com.inholland.bank.model.Customer;
 import com.inholland.bank.model.Transaction;
 import com.inholland.bank.service.EmployeeService;
 import com.inholland.bank.model.dto.TransferRequestDTO;
+import com.inholland.bank.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,9 @@ public class EmployeeController {
 
     @Autowired
     private EmployeeService employeeService;
+    @Autowired
+    private TransactionService transactionService;
+
 
     @GetMapping("/customers")
     public List<Customer> getAllCustomers() {
@@ -24,7 +28,7 @@ public class EmployeeController {
 
     @GetMapping("/customers/{customerId}/transactions")
     public List<Transaction> getCustomerTransactionHistory(@PathVariable Long customerId) {
-        return employeeService.getTransactionHistoryByCustomerId(customerId);
+        return transactionService.getTransactionHistoryByCustomerId(customerId);
     }
 
     @GetMapping("/customers/unapproved")
@@ -39,13 +43,10 @@ public class EmployeeController {
     }
 
     @PostMapping("/transfer")
-    public String transferBetweenAccounts(@RequestBody TransferRequestDTO request) {
-        employeeService.transferFundsBetweenAccounts(
-                request.getFromIban(),
-                request.getToIban(),
-                request.getAmount()
-        );
+    public String transferBetweenAccounts(@RequestBody Transaction transaction) {
+        transactionService.transferFunds(transaction);
         return "Transfer completed.";
     }
+
 
 }
