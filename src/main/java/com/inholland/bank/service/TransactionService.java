@@ -50,10 +50,6 @@ public class TransactionService {
         recordTransaction(transaction);
     }
 
-    public List<Transaction> getTransactionsForAccount(Account account) {
-        return transactionRepository.findByAccount(account);
-    }
-
     public List<Transaction> getTransactionsForToday(Account account) {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime now = LocalDateTime.now();
