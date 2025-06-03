@@ -28,9 +28,6 @@ public class IbanService {
 
         BigInteger preChecksum = new BigInteger(((bankCodeInt * 10000000000L) + rnd) + "" + countryCodeInt + "00");
 
-        //System.out.println(bankCodeInt);
-        //System.out.println(countryCodeInt);
-
         int checksum = 98 - preChecksum.mod(new BigInteger("97")).intValue();
 
 

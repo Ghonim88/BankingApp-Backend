@@ -2,6 +2,7 @@ package com.inholland.bank.controller;
 
 import com.inholland.bank.model.Account;
 import com.inholland.bank.model.dto.AccountDTO;
+import com.inholland.bank.model.dto.CustomerDTO;
 import com.inholland.bank.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,16 @@ public class AccountController {
 
     @Autowired
     private AccountService accountService;
+
+    @GetMapping
+    public ResponseEntity<List<AccountDTO>> getAllAccounts() {
+        try {
+            List<AccountDTO> accounts = accountService.getAllAccounts();
+            return new ResponseEntity<>(accounts, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+    }
 
     @PostMapping
     public ResponseEntity<List<AccountDTO>> createAccountsForCustomer(@RequestBody List<AccountDTO> accountDTOs) {

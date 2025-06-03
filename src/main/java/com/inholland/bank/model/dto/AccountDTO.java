@@ -12,7 +12,6 @@ public class AccountDTO {
     private Long accountId;
     private String iban;
     private double balance;
-    private String currency;
     private int dailyTransferLimit;
     private int absoluteTransferLimit;
     private AccountType accountType;
