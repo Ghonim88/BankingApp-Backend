@@ -36,7 +36,9 @@ public class SecurityConfig {
         .cors(cors -> {}) //  ENABLE CORS properly
         .csrf(AbstractHttpConfigurer::disable) // disable csrf if you don't need it
         .authorizeHttpRequests(auth -> auth
-        .requestMatchers("/h2-console/**").permitAll() // Allow unrestricted access to H2 console
+        .requestMatchers("/h2-console/**",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**").permitAll()
         .anyRequest().permitAll()
         )
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter
