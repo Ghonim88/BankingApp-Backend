@@ -72,8 +72,8 @@ public class CustomerService {
   }
 
   public List<CustomerDTO> getCustomersByStatus(AccountStatus status) {
-    return customerRepository.findByAccountStatus(status)
-            .stream()
+    List<Customer> customers = customerRepository.findByAccountStatus(status);
+    return customers.stream()
             .map(this::convertToDTO)
             .toList();
   }

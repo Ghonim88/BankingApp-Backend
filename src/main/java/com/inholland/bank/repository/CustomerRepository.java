@@ -1,8 +1,6 @@
 package com.inholland.bank.repository;
 import com.inholland.bank.model.AccountStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.inholland.bank.model.Customer;
 
@@ -18,6 +16,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
   Optional<Customer> findByPhoneNumber(String phoneNumber);
   Optional<Customer> findByBsn(String bsn);
   Optional<Customer> findById(Long id);
-  Optional<Customer> findByAccountStatus(AccountStatus status);
+  List<Customer> findByAccountStatus(AccountStatus status);
 
 }
