@@ -24,20 +24,11 @@ public class EmployeeService {
     @Autowired
     private  EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
-    private final CustomerRepository customerRepository;
-    private final TransactionService transactionService;
-    private final AccountRepository accountRepository;
-
 
     @Autowired
-    public EmployeeService(EmployeeRepository employeeRepository, PasswordEncoder passwordEncoder, CustomerRepository customerRepository,
-                           TransactionService transactionService,
-                           AccountRepository accountRepository) {
+    public EmployeeService(EmployeeRepository employeeRepository, PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
-        this.customerRepository = customerRepository;
-        this.transactionService = transactionService;
-        this.accountRepository = accountRepository;
     }
     public Employee registerNewEmployee(EmployeeDTO employeeDto) { //TODO: check if you neet to change to void
         // Hash the password before saving
@@ -53,25 +44,5 @@ public class EmployeeService {
 
       return employeeRepository.save(employee);
     }
-    public Optional<Employee> findById(Long id) {
-        return employeeRepository.findById(id);
-    }
-
-    public List<Customer> getAllCustomers() {
-        return customerRepository.findAll();
-    }
-
-    public List<Customer> getUnapprovedCustomers() {
-        return customerRepository.findByAccountStatus(AccountStatus.Pending);
-    }
-
-    public void closeCustomerAccount(Long customerId) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
-
-        customer.setAccountStatus(AccountStatus.Closed);
-        customerRepository.save(customer);
-    }
-
 
 }
