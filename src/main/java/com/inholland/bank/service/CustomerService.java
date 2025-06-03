@@ -71,6 +71,13 @@ public class CustomerService {
             .toList();
   }
 
+  public List<CustomerDTO> getCustomersByStatus(AccountStatus status) {
+    return customerRepository.findByAccountStatus(status)
+            .stream()
+            .map(this::convertToDTO)
+            .toList();
+  }
+
   private CustomerDTO convertToDTO(Customer customer) {
     CustomerDTO dto = new CustomerDTO();
     dto.setUserId(customer.getUserId());

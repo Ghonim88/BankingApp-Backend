@@ -20,8 +20,6 @@ public class Account {
 
   @Column(name = "balance", nullable = false)
   private double balance = 0.0;
-  //TODO: do we really need currency? everything should be in euros anyway, so i don t see the point in having this
-  private String currency;
 
   @Column(name = "iban", unique = true, nullable = false)
   private String iban;
