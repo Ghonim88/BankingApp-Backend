@@ -21,8 +21,6 @@ public class CustomerDTO extends UserDTO{
   @NotBlank
   private String bsn;
   @NotNull
-  private AccountType accountType;
-  @NotNull
   private double transactionLimit;
   @NotNull
   private AccountStatus accountStatus;
