@@ -12,13 +12,13 @@ import jakarta.persistence.*;
 @NoArgsConstructor
 @PrimaryKeyJoinColumn(name = "userId")
 public class Employee extends User {
-    @PrePersist
-    public void prePersist() { //set default userRole to EMPLOYEE
-        // if userRole is null, set it to EMPLOYEE
-        // this is to ensure that the userRole is always set to EMPLOYEE when a new employee is created
-        if (userRole == null) {
-            this.userRole = UserRole.EMPLOYEE;
-        }
-    }
-  
+//    @PrePersist
+//    public void prePersist() { //set default userRole to EMPLOYEE
+//        // if userRole is null, set it to EMPLOYEE
+//        // this is to ensure that the userRole is always set to EMPLOYEE when a new employee is created
+//        if (userRole == null) {
+//            this.userRole = UserRole.EMPLOYEE;
+//        }
+//    }
+  //TODO: Ask Daniel about our approach to customers and employees objects that extend user. Is it any problem if this class is empty?
 }
