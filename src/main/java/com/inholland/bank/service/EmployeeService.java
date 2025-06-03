@@ -1,6 +1,9 @@
 package com.inholland.bank.service;
 
-import com.inholland.bank.model.*;
+import com.inholland.bank.model.AccountStatus;
+import com.inholland.bank.model.Customer;
+import com.inholland.bank.model.Employee;
+import com.inholland.bank.model.UserRole;
 import com.inholland.bank.model.dto.EmployeeDTO;
 import com.inholland.bank.repository.AccountRepository;
 import com.inholland.bank.repository.CustomerRepository;
@@ -46,6 +49,7 @@ public class EmployeeService {
         employee.setLastName(employeeDto.getLastName());
         employee.setEmail(employeeDto.getEmail());
         employee.setPassword(employeeDto.getPassword());
+        employee.setUserRole(UserRole.EMPLOYEE);
 
       return employeeRepository.save(employee);
     }
