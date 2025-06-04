@@ -48,7 +48,6 @@ public class UserService {
         return Optional.empty();
       }
     }
-
     // Customer not found
     return Optional.empty();
   }
