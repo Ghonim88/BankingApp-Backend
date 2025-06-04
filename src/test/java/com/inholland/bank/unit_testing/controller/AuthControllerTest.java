@@ -34,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @SpringJUnitWebConfig
 @WebMvcTest(AuthController.class)
 @Import(TestSecurityConfig.class) // Import the TestSecurityConfig
+@ActiveProfiles("test") // Use the test profile
 class AuthControllerTest {
 
   @Autowired

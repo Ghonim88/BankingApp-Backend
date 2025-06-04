@@ -33,10 +33,6 @@ public class AuthController {
   private CustomerService customerService;
   @Autowired private AuthenticationManager authenticationManager;
 
-  //debugging purposes
- // private static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
-
-
   @PostMapping("/login")
   public ResponseEntity<Object> authenticateUser(@RequestBody LoginDTO loginDto) {
     if (loginDto.getEmail() == null
