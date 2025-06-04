@@ -1,5 +1,6 @@
 package com.inholland.bank.config;
 
+import com.inholland.bank.model.AccountStatus;
 import com.inholland.bank.model.dto.EmployeeDTO;
 import com.inholland.bank.model.dto.CustomerDTO;
 import com.inholland.bank.service.EmployeeService;

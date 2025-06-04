@@ -114,4 +114,12 @@ public class AccountService {
 
         return account;
     }
+
+    public List<AccountDTO> getAccountsByCustomerId(Long customerId) {
+        List<Account> accounts = accountRepository.findByCustomer_UserId(customerId);
+        return accounts.stream()
+                .map(this::convertToDTO)
+                .toList();
+    }
+
 }

@@ -49,4 +49,15 @@ public class AccountController {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
+
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<List<AccountDTO>> getAccountsByCustomerId(@PathVariable Long customerId) {
+        try {
+            List<AccountDTO> accounts = accountService.getAccountsByCustomerId(customerId);
+            return new ResponseEntity<>(accounts, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+    }
+
 }
