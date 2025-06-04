@@ -76,7 +76,6 @@ public class AuthController {
   public ResponseEntity<Object> getLoggedIn(Authentication authentication) {
     try {
       if (authentication == null) {
-         // logger.error("Authentication is null");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
             .body("Authentication is missing" + authentication);
       }
