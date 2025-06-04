@@ -6,17 +6,13 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class CommonStepDefinitions {
 
-  @Value("${local.server.port}")
-  private int port;
+  private ResponseEntity<String> response;
 
-  private final RestTemplate restTemplate = new RestTemplate();
-  private String baseUrl;
-
-  public void setBaseUrl() {
-    this.baseUrl = "http://localhost:" + port;
+  public ResponseEntity<String> getResponse() {
+    return response;
   }
 
-  public ResponseEntity<String> getResponseEntity(String endpoint, String requestBody) {
-    return restTemplate.postForEntity(baseUrl + endpoint, requestBody, String.class);
+  public void setResponse(ResponseEntity<String> response) {
+    this.response = response;
   }
 }

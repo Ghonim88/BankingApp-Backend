@@ -8,6 +8,5 @@ import org.springframework.test.context.ActiveProfiles;
 
 @CucumberContextConfiguration
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ActiveProfiles("cucumber") // Use the cucumber profile for Cucumber tests
 public class CucumberSpringConfiguration {
 }
