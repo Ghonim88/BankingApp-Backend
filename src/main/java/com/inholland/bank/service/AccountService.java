@@ -91,6 +91,8 @@ public class AccountService {
         dto.setAbsoluteTransferLimit(account.getAbsoluteTransferLimit());
         dto.setAccountType(account.getAccountType());
         dto.setCustomerId(account.getCustomer().getUserId());
+        dto.setOwnerEmail(account.getCustomer().getEmail());
+
         return dto;
     }
 
@@ -114,4 +116,26 @@ public class AccountService {
 
         return account;
     }
+
+    public AccountDTO getAccountById(Long id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found with id: " + id));
+        return convertToDTO(account);
+    }
+
+    public void updateAccount(Long id, AccountDTO dto) {
+        Account existingAccount = accountRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found with id: " + id));
+
+        if (dto.getDailyTransferLimit() != null) {
+            existingAccount.setDailyTransferLimit(dto.getDailyTransferLimit());
+        }
+
+        if (dto.getAbsoluteTransferLimit() != null) {
+            existingAccount.setAbsoluteTransferLimit(dto.getAbsoluteTransferLimit());
+        }
+
+        accountRepository.save(existingAccount);
+    }
+
 }

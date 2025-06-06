@@ -30,6 +30,8 @@ private final DatabaseSeeder seeder;
 //    employeeService.registerNewEmployee(employeeDTO);
     seeder.seedEmployees();
     seeder.seedCustomers();
+    seeder.seedTestAccount();
+
 
   }
 }

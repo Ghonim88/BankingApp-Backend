@@ -1,21 +1,36 @@
 package com.inholland.bank.config;
 
+import com.inholland.bank.model.Account;
+import com.inholland.bank.model.AccountType;
+import com.inholland.bank.model.Customer;
 import com.inholland.bank.model.dto.EmployeeDTO;
 import com.inholland.bank.model.dto.CustomerDTO;
+import com.inholland.bank.repository.AccountRepository;
+import com.inholland.bank.repository.CustomerRepository;
 import com.inholland.bank.service.EmployeeService;
 import com.inholland.bank.service.CustomerService;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
 
 @Component
 public class DatabaseSeeder {
 
     private final EmployeeService employeeService;
     private final CustomerService customerService;
+    private final CustomerRepository customerRepository;
+    private final AccountRepository accountRepository;
 
-    public DatabaseSeeder(EmployeeService employeeService, CustomerService customerService) {
+    public DatabaseSeeder(EmployeeService employeeService,
+                          CustomerService customerService,
+                          CustomerRepository customerRepository,
+                          AccountRepository accountRepository) {
         this.employeeService = employeeService;
         this.customerService = customerService;
+        this.customerRepository = customerRepository;
+        this.accountRepository = accountRepository;
     }
+
 
     public void seedEmployees() {
         EmployeeDTO employeeDTO = new EmployeeDTO();
@@ -72,4 +87,22 @@ public class DatabaseSeeder {
         customer5.setBsn("555555555");
         customerService.registerNewCustomer(customer5);
     }
+
+    public void seedTestAccount() {
+        Customer customer = customerRepository.findByEmail("customer1@gmail.com");
+
+        if (customer != null) {
+            boolean alreadyHasAccount = accountRepository.findAll().stream()
+                    .anyMatch(acc -> acc.getCustomer().getUserId().equals(customer.getUserId()));
+
+            if (!alreadyHasAccount) {
+                Account testAccount = new Account(AccountType.CHECKING, customer);
+                testAccount.setBalance(BigDecimal.valueOf(200));
+                testAccount.setDailyTransferLimit(BigDecimal.valueOf(200));
+                testAccount.setAbsoluteTransferLimit(BigDecimal.valueOf(0));
+                accountRepository.save(testAccount);
+            }
+        }
+    }
+
 }
