@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 public class CustomUserDetails implements UserDetails {
@@ -19,7 +20,9 @@ public class CustomUserDetails implements UserDetails {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return Collections.emptyList(); // or map from user.getRole()
+    return Collections.singletonList(
+        new SimpleGrantedAuthority(user.getUserRole().name()) // or getName(), whatever method returns the role string
+    );
   }
 
   @Override
@@ -31,6 +34,7 @@ public class CustomUserDetails implements UserDetails {
   public String getUsername() {
     return user.getEmail();
   }
+
 
   @Override
   public boolean isAccountNonExpired() {

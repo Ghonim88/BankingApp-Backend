@@ -38,7 +38,10 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
         .requestMatchers("/h2-console/**",
                     "/swagger-ui/**",
-                    "/v3/api-docs/**").permitAll()
+                    "/v3/api-docs/**",
+                    "/auth/**").permitAll()
+        .requestMatchers("/customers","/transactions", "/accounts").hasAuthority("EMPLOYEE") // Only allow EMPLOYEE
+        .requestMatchers("/home", "/customerHome").hasAuthority( "CUSTOMER") // Allow CUSTOMER
         .anyRequest().permitAll()
         )
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter

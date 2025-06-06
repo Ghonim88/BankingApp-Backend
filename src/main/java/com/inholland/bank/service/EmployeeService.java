@@ -1,12 +1,21 @@
 package com.inholland.bank.service;
 
+import com.inholland.bank.model.AccountStatus;
+import com.inholland.bank.model.Customer;
 import com.inholland.bank.model.Employee;
 import com.inholland.bank.model.UserRole;
 import com.inholland.bank.model.dto.EmployeeDTO;
+import com.inholland.bank.repository.AccountRepository;
+import com.inholland.bank.repository.CustomerRepository;
 import com.inholland.bank.repository.EmployeeRepository;
+import com.inholland.bank.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import java.util.Optional;
 
@@ -16,11 +25,9 @@ public class EmployeeService {
     private  EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
 
-
     @Autowired
     public EmployeeService(EmployeeRepository employeeRepository, PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
-
         this.passwordEncoder = passwordEncoder;
     }
     public Employee registerNewEmployee(EmployeeDTO employeeDto) { //TODO: check if you neet to change to void
@@ -37,9 +44,5 @@ public class EmployeeService {
 
       return employeeRepository.save(employee);
     }
-    public Optional<Employee> findById(Long id) {
-        return employeeRepository.findById(id);
-    }
-
 
 }
