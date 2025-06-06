@@ -18,4 +18,5 @@ public class AccountDTO {
     private BigDecimal absoluteTransferLimit;
     private AccountType accountType;
     private Long customerId;
+    private String ownerEmail;
 }

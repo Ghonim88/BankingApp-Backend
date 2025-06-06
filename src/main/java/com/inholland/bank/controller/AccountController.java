@@ -49,4 +49,25 @@ public class AccountController {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AccountDTO> getAccountById(@PathVariable Long id) {
+        try {
+            AccountDTO account = accountService.getAccountById(id);
+            return new ResponseEntity<>(account, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateAccount(@PathVariable Long id, @RequestBody AccountDTO dto) {
+        try {
+            accountService.updateAccount(id, dto);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
 }
+
