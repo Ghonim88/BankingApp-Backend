@@ -24,6 +24,10 @@ public class JwtTokenUtil {
     return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
   }
 
+  /**
+   * Generate a JWT token from authenticated user details.
+   * Adds custom claims such as user role and user ID.
+   */
   public String generateToken(Authentication authentication) {
     CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
@@ -51,7 +55,7 @@ public class JwtTokenUtil {
     return claimsResolver.apply(claims);
   }
 
-
+   //Parse the token and extract all claims.
   private Claims getAllClaimsFromToken(String token) {
     return Jwts.parserBuilder()
         .setSigningKey(getSigningKey())

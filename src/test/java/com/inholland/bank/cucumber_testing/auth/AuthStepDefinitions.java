@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AuthStepDefinitions {
 
   private final String baseUrl = "http://localhost:8080/";
@@ -29,6 +29,7 @@ public class AuthStepDefinitions {
                                             /* REGISTRATION */
   @Given("I provide registration details with email {string}, password {string}, first name {string}, last name {string}, BSN {string}, and phone number {string}")
   public void i_provide_registration_details(String email, String password, String firstName, String lastName, String bsn, String phoneNumber) {
+
     requestBody = String.format(
         "{\"email\": \"%s\", \"password\": \"%s\", \"firstName\": \"%s\", \"lastName\": \"%s\", \"bsn\": \"%s\", \"phoneNumber\": \"%s\"}",
         email, password, firstName, lastName, bsn, phoneNumber

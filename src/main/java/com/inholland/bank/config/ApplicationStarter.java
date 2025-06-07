@@ -8,12 +8,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ApplicationStarter implements ApplicationRunner {
-
-    //private final EmployeeService employeeService;
-
-    //  public ApplicationStarter(EmployeeService employeeService) {
-//    this.employeeService = employeeService;
-//  }
     private final DatabaseSeeder seeder;
 
     public ApplicationStarter(DatabaseSeeder seeder) {
@@ -24,4 +18,5 @@ public class ApplicationStarter implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         seeder.seedAll();
     }
+
 }
