@@ -3,6 +3,7 @@ package com.inholland.bank.service;
 import com.inholland.bank.model.Account;
 import com.inholland.bank.model.Customer;
 import com.inholland.bank.model.Transaction;
+import com.inholland.bank.model.dto.TransactionDTO;
 import com.inholland.bank.repository.AccountRepository;
 import com.inholland.bank.repository.CustomerRepository;
 import com.inholland.bank.repository.TransactionRepository;
@@ -28,6 +29,13 @@ public class TransactionService {
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
 
+    }
+
+    public List<TransactionDTO> getAllTransactions() {
+        List<Transaction> transactions = transactionRepository.findAll();
+        return transactions.stream()
+                .map(this::convertToDTO)
+                .toList();
     }
 
     public void transferFunds(Transaction transaction) {
@@ -112,5 +120,16 @@ public class TransactionService {
         }
 
         transactionRepository.save(transaction);
+    }
+
+    public TransactionDTO convertToDTO(Transaction transaction) {
+        TransactionDTO dto = new TransactionDTO();
+        dto.setTransactionId(transaction.getTransactionId());
+        dto.setTransactionAmount(transaction.getTransactionAmount());
+        dto.setSenderIban(transaction.getSenderIban());
+        dto.setReceiverIban(transaction.getReceiverIban());
+        dto.setCreatedAt(transaction.getCreatedAt());
+
+        return dto;
     }
 }
