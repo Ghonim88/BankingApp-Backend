@@ -1,8 +1,10 @@
-FROM maven:3.9.5-openjdk-21 AS build
+# Stage 1: Build the app
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 COPY . .
 RUN mvn clean package -DskipTests
 
-FROM openjdk:21-jdk-slim
+# Stage 2: Run the app
+FROM eclipse-temurin:21-jdk
 COPY --from=build /target/bank-0.0.1-SNAPSHOT.jar bank.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "bank.jar"]
