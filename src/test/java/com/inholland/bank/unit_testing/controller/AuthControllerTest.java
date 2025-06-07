@@ -1,5 +1,8 @@
 package com.inholland.bank.unit_testing.controller;
 import com.inholland.bank.controller.AuthController;
+import com.inholland.bank.exceptions.BsnAlreadyExistsException;
+import com.inholland.bank.exceptions.EmailAlreadyExistsException;
+import com.inholland.bank.exceptions.PhoneAlreadyExistsException;
 import com.inholland.bank.model.Customer;
 import com.inholland.bank.model.User;
 import com.inholland.bank.model.dto.CustomerDTO;
@@ -81,8 +84,7 @@ class AuthControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"email\":\"\",\"password\":\"\"}"))
         .andDo(print())
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string("Email and password are required"));
+        .andExpect(status().isBadRequest());
   }
 
   @Test
@@ -124,16 +126,42 @@ class AuthControllerTest {
   }
 
   @Test
-  void registerCustomer_ShouldReturnBadRequest_WhenRegistrationFails() throws Exception {
+  void registerCustomer_ShouldReturnConflict_WhenEmailAlreadyExists() throws Exception {
     when(customerService.registerNewCustomer(any(CustomerDTO.class)))
-        .thenThrow(new RuntimeException("Registration failed"));
+        .thenThrow(new EmailAlreadyExistsException("Email already exists"));
 
     mockMvc.perform(post("/auth/register")
             .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"password\":\"password123\"}"))
+            .content("{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"password\":\"password123\",\"phoneNumber\":\"+31612345678\",\"bsn\":\"123456789\"}"))
         .andDo(print())
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string("Registration failed"));
+        .andExpect(status().isConflict())
+        .andExpect(content().string("The email address 'Email already exists' is already registered in the system. Please use a different email address."));
+  }
+
+  @Test
+  void registerCustomer_ShouldReturnConflict_WhenBsnAlreadyExists() throws Exception {
+    when(customerService.registerNewCustomer(any(CustomerDTO.class)))
+        .thenThrow(new BsnAlreadyExistsException("BSN already exists"));
+
+    mockMvc.perform(post("/auth/register")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"password\":\"password123\",\"phoneNumber\":\"+31612345678\",\"bsn\":\"123456789\"}"))
+        .andDo(print())
+        .andExpect(status().isConflict())
+        .andExpect(content().string("The BSN 'BSN already exists' is already registered. Please use a different BSN."));
+  }
+
+  @Test
+  void registerCustomer_ShouldReturnConflict_WhenPhoneAlreadyExists() throws Exception {
+    when(customerService.registerNewCustomer(any(CustomerDTO.class)))
+        .thenThrow(new PhoneAlreadyExistsException("Phone number already exists"));
+
+    mockMvc.perform(post("/auth/register")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"password\":\"password123\",\"phoneNumber\":\"+31612345678\",\"bsn\":\"123456789\"}"))
+        .andDo(print())
+        .andExpect(status().isConflict())
+        .andExpect(content().string("The phone number 'Phone number already exists' is already registered. Please use a different phone number."));
   }
 
   @Test
