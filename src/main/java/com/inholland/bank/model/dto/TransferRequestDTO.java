@@ -1,9 +1,11 @@
 package com.inholland.bank.model.dto;
 
+import java.math.BigDecimal;
+
 public class TransferRequestDTO {
     private String fromIban;
     private String toIban;
-    private double amount;
+    private BigDecimal amount;
 
     public TransferRequestDTO() {
         // Default constructor
@@ -25,11 +27,11 @@ public class TransferRequestDTO {
         this.toIban = toIban;
     }
 
-    public double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 }

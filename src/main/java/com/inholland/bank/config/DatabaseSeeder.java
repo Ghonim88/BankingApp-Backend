@@ -12,6 +12,7 @@ import com.inholland.bank.service.CustomerService;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Component
 public class DatabaseSeeder {
@@ -92,17 +93,31 @@ public class DatabaseSeeder {
         Customer customer = customerRepository.findByEmail("customer1@gmail.com");
 
         if (customer != null) {
-            boolean alreadyHasAccount = accountRepository.findAll().stream()
-                    .anyMatch(acc -> acc.getCustomer().getUserId().equals(customer.getUserId()));
+            // Check if the customer already has accounts
+            List<Account> existingAccounts = accountRepository.findAll().stream()
+                    .filter(acc -> acc.getCustomer().getUserId().equals(customer.getUserId()))
+                    .toList();
 
-            if (!alreadyHasAccount) {
-                Account testAccount = new Account(AccountType.CHECKING, customer);
-                testAccount.setBalance(BigDecimal.valueOf(200));
-                testAccount.setDailyTransferLimit(BigDecimal.valueOf(200));
-                testAccount.setAbsoluteTransferLimit(BigDecimal.valueOf(0));
-                accountRepository.save(testAccount);
+            boolean hasChecking = existingAccounts.stream().anyMatch(a -> a.getAccountType() == AccountType.CHECKING);
+            boolean hasSavings = existingAccounts.stream().anyMatch(a -> a.getAccountType() == AccountType.SAVINGS);
+
+            if (!hasChecking) {
+                Account checking = new Account(AccountType.CHECKING, customer);
+                checking.setBalance(BigDecimal.valueOf(500));
+                checking.setDailyTransferLimit(BigDecimal.valueOf(300));
+                checking.setAbsoluteTransferLimit(BigDecimal.valueOf(0));
+                accountRepository.save(checking);
+            }
+
+            if (!hasSavings) {
+                Account savings = new Account(AccountType.SAVINGS, customer);
+                savings.setBalance(BigDecimal.valueOf(1000));
+                savings.setDailyTransferLimit(BigDecimal.valueOf(500));
+                savings.setAbsoluteTransferLimit(BigDecimal.valueOf(0));
+                accountRepository.save(savings);
             }
         }
     }
+
 
 }
