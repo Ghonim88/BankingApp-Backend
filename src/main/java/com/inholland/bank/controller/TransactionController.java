@@ -42,7 +42,6 @@ public class TransactionController {
     // POST /api/transactions/transfer
     @PostMapping("/transfer")
     public ResponseEntity<String> transferBetweenAccounts(@RequestBody TransferRequestDTO dto) {
-        System.out.println("DTO from frontend - amount: " + dto.getAmount());
         try {
             transactionService.transferFunds(dto);
             return new ResponseEntity<>("Transfer completed.", HttpStatus.CREATED);
