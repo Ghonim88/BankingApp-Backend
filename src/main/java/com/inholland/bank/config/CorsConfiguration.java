@@ -14,7 +14,9 @@ public class CorsConfiguration {
       @Override
       public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-            .allowedOriginPatterns("http://localhost:*") // allow any localhost with any port
+           // .allowedOriginPatterns("http://localhost:*") // allow any localhost with any port
+            .allowedOriginPatterns("http://localhost:*", "https://*")
+            .allowedOrigins("https://ghonim88.github.io")
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
             .allowCredentials(true);
