@@ -110,9 +110,11 @@ public class TransactionService {
     }
 
     private void validateAbsoluteLimit(Account from, BigDecimal amount) {
-        if (amount.compareTo(from.getAbsoluteTransferLimit()) > 0)
-            throw new IllegalArgumentException("Amount exceeds absolute transfer limit for this account");
+        BigDecimal remainingBalance = from.getBalance().subtract(amount);
+        if (remainingBalance.compareTo(from.getAbsoluteTransferLimit()) < 0)
+            throw new IllegalArgumentException("Amount would exceed absolute transfer limit for this account");
     }
+
 
     private void validateDailyLimit(Account from, BigDecimal amount) {
         BigDecimal totalTransferredToday = getTransactionsForToday(from).stream()

@@ -162,7 +162,7 @@ public class DatabaseSeeder {
             savings.setAccountType(AccountType.SAVINGS);
             savings.setBalance(BigDecimal.valueOf(5000));
             savings.setDailyTransferLimit(BigDecimal.valueOf(5000));
-            savings.setAbsoluteTransferLimit(BigDecimal.valueOf(10000));
+            savings.setAbsoluteTransferLimit(BigDecimal.valueOf(100));
             savings.setCustomerId(customer.getUserId());
             accounts.add(savings);
 
@@ -170,7 +170,7 @@ public class DatabaseSeeder {
             checking.setAccountType(AccountType.CHECKING);
             checking.setBalance(BigDecimal.valueOf(500));
             checking.setDailyTransferLimit(BigDecimal.valueOf(500));
-            checking.setAbsoluteTransferLimit(BigDecimal.valueOf(10000));
+            checking.setAbsoluteTransferLimit(BigDecimal.valueOf(10));
             checking.setCustomerId(customer.getUserId());
             accounts.add(checking);
 
