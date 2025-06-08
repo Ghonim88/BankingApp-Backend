@@ -101,29 +101,48 @@ class AuthControllerTest {
   }
   @Test
   void registerCustomer_ShouldReturnCreated_WhenRegistrationIsSuccessful() throws Exception {
+    // Arrange - create DTO and expected Customer object
     CustomerDTO customerDTO = new CustomerDTO();
     customerDTO.setFirstName("John");
     customerDTO.setLastName("Doe");
     customerDTO.setEmail("john.doe@example.com");
-    customerDTO.setPassword("password123");
+    customerDTO.setPassword("Password123!");
+    customerDTO.setBsn("123456789");
+    customerDTO.setPhoneNumber("+31612345678");
 
     Customer customer = new Customer();
     customer.setUserId(1L);
     customer.setFirstName("John");
     customer.setLastName("Doe");
     customer.setEmail("john.doe@example.com");
+    customer.setBsn("123456789");
+    customer.setPhoneNumber("+31612345678");
 
+    // Mock service behavior
     when(customerService.registerNewCustomer(any(CustomerDTO.class))).thenReturn(customer);
 
+    // Act & Assert - simulate POST request
     mockMvc.perform(post("/auth/register")
             .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"password\":\"password123\"}"))
+            .content("""
+                {
+                  "firstName": "John",
+                  "lastName": "Doe",
+                  "email": "john.doe@example.com",
+                  "password": "Password123!",
+                  "bsn": "123456789",
+                  "phoneNumber": "+31612345678"
+                }
+            """))
         .andDo(print())
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.firstName").value("John"))
         .andExpect(jsonPath("$.lastName").value("Doe"))
-        .andExpect(jsonPath("$.email").value("john.doe@example.com"));
+        .andExpect(jsonPath("$.email").value("john.doe@example.com"))
+        .andExpect(jsonPath("$.bsn").value("123456789"))
+        .andExpect(jsonPath("$.phoneNumber").value("+31612345678"));
   }
+
 
   @Test
   void registerCustomer_ShouldReturnConflict_WhenEmailAlreadyExists() throws Exception {
@@ -167,7 +186,6 @@ class AuthControllerTest {
   @Test
   void getLoggedIn_ShouldReturnUserData_WhenAuthenticated() throws Exception {
     User user = new User();
-    user.setUserId(1L);
     user.setEmail("john.doe@example.com");
     user.setPassword("password123");
 
