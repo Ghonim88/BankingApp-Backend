@@ -2,7 +2,6 @@ package com.inholland.bank.exceptions;
 
 public class EmailAlreadyExistsException extends RuntimeException {
 
-  // Constructor that accepts a message
   public EmailAlreadyExistsException(String email) {
     super(
         String.format(

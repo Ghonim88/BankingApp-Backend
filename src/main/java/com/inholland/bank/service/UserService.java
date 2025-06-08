@@ -32,25 +32,25 @@ public class UserService {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
   }
-  public Optional<User> login(String email, String password) {
-    // Fetch customer by email
-    Optional<User> userOptional = userRepository.findByEmail(email);
-
-    if (userOptional.isPresent()) {
-      User user = userOptional.get();
-
-      // Check if the password matches
-      if (passwordEncoder.matches(password, user.getPassword())) {
-        // Password matches, return the customer
-        return Optional.of(user);
-      } else {
-        // Password doesn't match
-        return Optional.empty();
-      }
-    }
-    // Customer not found
-    return Optional.empty();
-  }
+////  public Optional<User> login(String email, String password) {
+////    // Fetch customer by email
+////    Optional<User> userOptional = userRepository.findByEmail(email);
+////
+////    if (userOptional.isPresent()) {
+////      User user = userOptional.get();
+////
+////      // Check if the password matches
+////      if (passwordEncoder.matches(password, user.getPassword())) {
+////        // Password matches, return the customer
+////        return Optional.of(user);
+////      } else {
+////        // Password doesn't match
+////        return Optional.empty();
+////      }
+////    }
+//    // Customer not found
+//    return Optional.empty();
+//  }
   public User findByEmail(String email) {
     return userRepository.findByEmail(email).orElse(null);
   }
@@ -60,21 +60,18 @@ public class UserService {
 
   public Object getLoggedInUser(User user) {
     Long userId = user.getUserId();
-    String role = user.getUserRole().name();
+   // String role = user.getUserRole().name();
 
-    if (UserRole.CUSTOMER.name().equals(role)) {
-      Optional<Customer> customer = customerRepository.findById(userId);
-      if (customer.isEmpty()) {
-        throw new UserNotFoundException("Customer with ID " + userId + " not found");
+    switch (user.getUserRole()) {
+      case CUSTOMER -> {
+        return customerRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException("Customer with ID " + userId + " not found"));
       }
-      return customer;
-    } else if (UserRole.EMPLOYEE.name().equals(role)) {
-      Optional<Employee> employee = employeeRepository.findById(userId);
-      if (employee.isEmpty()) {
-        throw new UserNotFoundException("Employee with ID " + userId + " not found");
+      case EMPLOYEE -> {
+        return employeeRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException("Employee with ID " + userId + " not found"));
       }
-      return employee;
+      default -> throw new RuntimeException("Invalid role");
     }
-    throw new RuntimeException("Invalid role");
   }
 }

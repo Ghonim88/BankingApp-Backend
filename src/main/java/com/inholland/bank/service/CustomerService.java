@@ -49,7 +49,7 @@ public class CustomerService {
     customer.setPhoneNumber(customerDto.getPhoneNumber());
     customer.setBsn(customerDto.getBsn());
     customer.setPassword(customerDto.getPassword());
-    customer.setUserRole(customerDto.getUserRole()); // should we set here the user role to customer so that we don t have duplicate code in customer and employee for null user role?
+    customer.setUserRole(customerDto.getUserRole());
 
     return customerRepository.save(customer);
   }

@@ -1,6 +1,5 @@
 package com.inholland.bank.security;
-
-import com.inholland.bank.model.User ;  // Alias to avoid conflict with Spring Security's User class
+import com.inholland.bank.model.User ;
 import com.inholland.bank.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,6 +20,7 @@ public class UserDetailServiceImpl implements UserDetailsService {
       throw new UsernameNotFoundException("User not found with username: " + username);
     }
 
+    //This CustomUserDetails provides Spring Security with user info and authorities
     return new CustomUserDetails(user);
   }
 }

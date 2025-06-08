@@ -12,8 +12,10 @@ import com.inholland.bank.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.inholland.bank.repository.CustomerRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +37,8 @@ public class AccountService {
                 .map(this::convertToDTO)
                 .toList();
     }
+
+    @Transactional
     public List<Account> createAccounts(List<AccountDTO> dtos) {
         if (dtos.size() != 2) {
             throw new InvalidAccountCreationRequestException("You cannot create more or less than 2 accounts for a single customer. (one checking, one savings)");
@@ -101,13 +105,18 @@ public class AccountService {
         account.setAccountType(dto.getAccountType());
         account.setDailyTransferLimit(dto.getDailyTransferLimit());
         account.setAbsoluteTransferLimit(dto.getAbsoluteTransferLimit());
-        account.setBalance(dto.getBalance());
 
         //if given an iban, use it, otherwise generate new
         if (dto.getIban() != null && !dto.getIban().isEmpty()) {
             account.setIban(dto.getIban());
         } else {
             account.setIban(generateUniqueIban());
+        }
+
+        if(dto.getBalance() != null) {
+            account.setBalance(dto.getBalance());
+        } else {
+            account.setBalance(BigDecimal.ZERO);
         }
 
         Customer customer = customerRepository.findById(dto.getCustomerId())

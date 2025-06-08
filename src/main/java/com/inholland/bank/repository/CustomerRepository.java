@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
 
-  Customer findByEmail(String email); //TODO: double check if you want todo an optional or as it is
+  Customer findByEmail(String email);
 
   Optional<Customer> findByPhoneNumber(String phoneNumber);
   Optional<Customer> findByBsn(String bsn);

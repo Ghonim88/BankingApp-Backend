@@ -45,7 +45,9 @@ public class SecurityConfig {
         .anyRequest().permitAll()
         )
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless sessions
+        // Set session management to stateless, since we rely on JWT for auth (no HTTP session)
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        // Configure headers to allow frame options for H2 console in same origin (needed for H2 UI)
         .headers(headers -> headers
             .addHeaderWriter(new XFrameOptionsHeaderWriter(
                 XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN)) // Allow H2 console in frames

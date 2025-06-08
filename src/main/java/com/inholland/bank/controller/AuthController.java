@@ -1,4 +1,7 @@
 package com.inholland.bank.controller;
+import com.inholland.bank.exceptions.BsnAlreadyExistsException;
+import com.inholland.bank.exceptions.EmailAlreadyExistsException;
+import com.inholland.bank.exceptions.PhoneAlreadyExistsException;
 import com.inholland.bank.model.Customer;
 import com.inholland.bank.model.User;
 import com.inholland.bank.model.dto.CustomerDTO;
@@ -7,8 +10,7 @@ import com.inholland.bank.security.CustomUserDetails;
 import com.inholland.bank.security.JwtTokenUtil;
 import com.inholland.bank.service.CustomerService;
 import com.inholland.bank.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +18,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -34,13 +35,8 @@ public class AuthController {
   @Autowired private AuthenticationManager authenticationManager;
 
   @PostMapping("/login")
-  public ResponseEntity<Object> authenticateUser(@RequestBody LoginDTO loginDto) {
-    if (loginDto.getEmail() == null
-        || loginDto.getEmail().isEmpty()
-        || loginDto.getPassword() == null
-        || loginDto.getPassword().isEmpty()) {
-      return ResponseEntity.badRequest().body("Email and password are required");
-    }
+  public ResponseEntity<Object> authenticateUser(@Valid @RequestBody LoginDTO loginDto) {
+
     try {
       // 🔐 Authenticate user using Spring Security
       Authentication authentication =
@@ -64,8 +60,8 @@ public class AuthController {
     try {
       Customer newCustomer = customerService.registerNewCustomer(customerDto);
       return new ResponseEntity<>(newCustomer, HttpStatus.CREATED);
-    } catch (Exception e) {
-      return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+    } catch (EmailAlreadyExistsException | BsnAlreadyExistsException | PhoneAlreadyExistsException e) {
+      return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
     }
   }
   @GetMapping("/me")
