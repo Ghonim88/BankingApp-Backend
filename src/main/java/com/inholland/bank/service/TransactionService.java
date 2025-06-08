@@ -3,6 +3,8 @@ package com.inholland.bank.service;
 import com.inholland.bank.model.Account;
 import com.inholland.bank.model.Customer;
 import com.inholland.bank.model.Transaction;
+import com.inholland.bank.model.dto.TransactionDTO;
+import com.inholland.bank.model.dto.TransferRequestDTO;
 import com.inholland.bank.repository.AccountRepository;
 import com.inholland.bank.repository.CustomerRepository;
 import com.inholland.bank.repository.TransactionRepository;
@@ -29,6 +31,31 @@ public class TransactionService {
         this.customerRepository = customerRepository;
 
     }
+
+    public List<TransactionDTO> getAllTransactions() {
+        List<Transaction> transactions = transactionRepository.findAll();
+        return transactions.stream()
+                .map(this::convertToDTO)
+                .toList();
+    }
+    public void transferFunds(TransferRequestDTO dto) {
+        System.out.println("Incoming TransferRequestDTO:");
+        System.out.println("From: " + dto.getFromIban());
+        System.out.println("To: " + dto.getToIban());
+        System.out.println("Amount: " + dto.getAmount()); // <- DEBUG HERE
+
+        if (dto.getAmount() == null) {
+            throw new IllegalArgumentException("Amount in request cannot be null");
+        }
+
+        Transaction transaction = new Transaction();
+        transaction.setSenderIban(dto.getFromIban());
+        transaction.setReceiverIban(dto.getToIban());
+        transaction.setTransactionAmount(dto.getAmount());
+
+        this.transferFunds(transaction);
+    }
+
 
     public void transferFunds(Transaction transaction) {
         validateAmount(transaction.getTransactionAmount());
@@ -57,8 +84,9 @@ public class TransactionService {
     }
 
     private void validateAmount(BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) <= 0)
-            throw new IllegalArgumentException("Amount must be greater than zero");
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be provided and greater than zero");
+        }
     }
 
     private Account getAccountOrThrow(String iban, String errorMsg) {
@@ -112,5 +140,16 @@ public class TransactionService {
         }
 
         transactionRepository.save(transaction);
+    }
+
+    public TransactionDTO convertToDTO(Transaction transaction) {
+        TransactionDTO dto = new TransactionDTO();
+        dto.setTransactionId(transaction.getTransactionId());
+        dto.setTransactionAmount(transaction.getTransactionAmount());
+        dto.setSenderIban(transaction.getSenderIban());
+        dto.setReceiverIban(transaction.getReceiverIban());
+        dto.setCreatedAt(transaction.getCreatedAt());
+
+        return dto;
     }
 }

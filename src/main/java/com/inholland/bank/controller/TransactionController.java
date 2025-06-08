@@ -2,6 +2,7 @@ package com.inholland.bank.controller;
 
 import com.inholland.bank.model.Transaction;
 import com.inholland.bank.model.dto.TransactionDTO;
+import com.inholland.bank.model.dto.TransferRequestDTO;
 import com.inholland.bank.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,8 +41,14 @@ public class TransactionController {
 
     // POST /api/transactions/transfer
     @PostMapping("/transfer")
-    public String transferBetweenAccounts(@RequestBody Transaction transaction) {
-        transactionService.transferFunds(transaction);
-        return "Transfer completed.";
+    public ResponseEntity<String> transferBetweenAccounts(@RequestBody TransferRequestDTO dto) {
+        System.out.println("DTO from frontend - amount: " + dto.getAmount());
+        try {
+            transactionService.transferFunds(dto);
+            return new ResponseEntity<>("Transfer completed.", HttpStatus.CREATED);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Transfer failed: " + e.getMessage());
+        }
     }
+
 }

@@ -1,11 +1,17 @@
 package com.inholland.bank.model.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.deser.std.NumberDeserializers;
+
 import java.math.BigDecimal;
 
 public class TransferRequestDTO {
     private String fromIban;
     private String toIban;
+
+    @JsonDeserialize(using = NumberDeserializers.BigDecimalDeserializer.class)
     private BigDecimal amount;
+
 
     public TransferRequestDTO() {
         // Default constructor
