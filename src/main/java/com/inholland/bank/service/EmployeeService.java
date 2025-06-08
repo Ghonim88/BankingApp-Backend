@@ -40,7 +40,6 @@ public class EmployeeService {
         employee.setLastName(employeeDto.getLastName());
         employee.setEmail(employeeDto.getEmail());
         employee.setPassword(employeeDto.getPassword());
-        employee.setUserRole(UserRole.EMPLOYEE);
 
       return employeeRepository.save(employee);
     }
