@@ -194,8 +194,8 @@ public class DatabaseSeeder {
             if (sender.getIban().equals(receiver.getIban())) continue;
 
             Transaction transaction = new Transaction();
-            transaction.setSenderIban(sender.getIban());
-            transaction.setReceiverIban(receiver.getIban());
+            transaction.setFromAccount(sender);
+            transaction.setToAccount(receiver);
             transaction.setTransactionAmount(BigDecimal.valueOf(5)); // Variable amount
             transaction.setCreatedAt(LocalDateTime.now());
 

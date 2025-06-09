@@ -1,5 +1,6 @@
 package com.inholland.bank.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,6 +36,7 @@ public class Account {
     private AccountType accountType;
   @ManyToOne
   @JoinColumn(name = "customer_id", nullable = false)
+  @JsonBackReference
   private Customer customer;
 
 

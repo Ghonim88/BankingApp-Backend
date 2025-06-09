@@ -147,4 +147,10 @@ public class AccountService {
         accountRepository.save(existingAccount);
     }
 
+    public List<Account> getAccountsByCustomerId(Long customerId) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        return accountRepository.findByCustomer(customer);
+    }
+
 }

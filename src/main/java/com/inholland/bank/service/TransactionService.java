@@ -23,13 +23,13 @@ public class TransactionService {
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
 
-
     @Autowired
-    public TransactionService(TransactionRepository transactionRepository, AccountRepository accountRepository, CustomerRepository customerRepository) {
+    public TransactionService(TransactionRepository transactionRepository,
+                              AccountRepository accountRepository,
+                              CustomerRepository customerRepository) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
-
     }
 
     public List<TransactionDTO> getAllTransactions() {
@@ -38,31 +38,29 @@ public class TransactionService {
                 .map(this::convertToDTO)
                 .toList();
     }
+
     public void transferFunds(TransferRequestDTO dto) {
-        System.out.println("Incoming TransferRequestDTO:");
-        System.out.println("From: " + dto.getFromIban());
-        System.out.println("To: " + dto.getToIban());
-        System.out.println("Amount: " + dto.getAmount()); // <- DEBUG HERE
 
         if (dto.getAmount() == null) {
             throw new IllegalArgumentException("Amount in request cannot be null");
         }
 
+        Account from = getAccountOrThrow(dto.getFromIban(), "Source account not found");
+        Account to = getAccountOrThrow(dto.getToIban(), "Destination account not found");
+
         Transaction transaction = new Transaction();
-        transaction.setSenderIban(dto.getFromIban());
-        transaction.setReceiverIban(dto.getToIban());
+        transaction.setFromAccount(from);
+        transaction.setToAccount(to);
         transaction.setTransactionAmount(dto.getAmount());
 
         this.transferFunds(transaction);
     }
 
-
     public void transferFunds(Transaction transaction) {
         validateAmount(transaction.getTransactionAmount());
 
-        Account from = getAccountOrThrow(transaction.getSenderIban(), "Source account not found");
-        Account to = getAccountOrThrow(transaction.getReceiverIban(), "Destination account not found");
-
+        Account from = transaction.getFromAccount();
+        Account to = transaction.getToAccount();
         BigDecimal amount = transaction.getTransactionAmount();
 
         validateSufficientBalance(from, amount);
@@ -70,17 +68,25 @@ public class TransactionService {
         validateDailyLimit(from, amount);
 
         performTransfer(from, to, amount);
-
-        transaction.setAccount(from);
-        transaction.setCreatedAt(LocalDateTime.now());
-
         recordTransaction(transaction);
+    }
+
+    private void recordTransaction(Transaction transaction) {
+        if (transaction.getCreatedAt() == null) {
+            transaction.setCreatedAt(LocalDateTime.now());
+        }
+
+        if (transaction.getFromAccount() == null || transaction.getToAccount() == null) {
+            throw new IllegalArgumentException("Transaction must have valid from/to accounts.");
+        }
+
+        transactionRepository.save(transaction);
     }
 
     public List<Transaction> getTransactionsForToday(Account account) {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime now = LocalDateTime.now();
-        return transactionRepository.findByAccountAndCreatedAtBetween(account, startOfDay, now);
+        return transactionRepository.findByFromAccountAndCreatedAtBetween(account, startOfDay, now);
     }
 
     private void validateAmount(BigDecimal amount) {
@@ -99,9 +105,11 @@ public class TransactionService {
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         List<Account> accounts = accountRepository.findByCustomer(customer);
+
         return accounts.stream()
-                .flatMap(account -> transactionRepository.findByAccount(account).stream())
-                .toList();
+                .flatMap(account ->
+                        transactionRepository.findByFromAccountOrToAccount(account, account).stream()
+                ).toList();
     }
 
     private void validateSufficientBalance(Account from, BigDecimal amount) {
@@ -114,7 +122,6 @@ public class TransactionService {
         if (remainingBalance.compareTo(from.getAbsoluteTransferLimit()) < 0)
             throw new IllegalArgumentException("Amount would exceed absolute transfer limit for this account");
     }
-
 
     private void validateDailyLimit(Account from, BigDecimal amount) {
         BigDecimal totalTransferredToday = getTransactionsForToday(from).stream()
@@ -132,24 +139,12 @@ public class TransactionService {
         accountRepository.save(to);
     }
 
-    private void recordTransaction(Transaction transaction) {
-        if (transaction.getCreatedAt() == null) {
-            transaction.setCreatedAt(LocalDateTime.now());
-        }
-
-        if (transaction.getAccount() == null) {
-            throw new IllegalArgumentException("Transaction must have an associated account before saving.");
-        }
-
-        transactionRepository.save(transaction);
-    }
-
     public TransactionDTO convertToDTO(Transaction transaction) {
         TransactionDTO dto = new TransactionDTO();
         dto.setTransactionId(transaction.getTransactionId());
         dto.setTransactionAmount(transaction.getTransactionAmount());
-        dto.setSenderIban(transaction.getSenderIban());
-        dto.setReceiverIban(transaction.getReceiverIban());
+        dto.setSenderIban(transaction.getFromAccount().getIban());
+        dto.setReceiverIban(transaction.getToAccount().getIban());
         dto.setCreatedAt(transaction.getCreatedAt());
 
         return dto;

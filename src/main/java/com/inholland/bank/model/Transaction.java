@@ -1,5 +1,6 @@
 package com.inholland.bank.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,14 +19,14 @@ public class Transaction {
     private Long transactionId;
 
     @ManyToOne
-    @JoinColumn(name = "accountId", nullable = false)
-    private Account account;
+    @JoinColumn(name = "from_account_id", nullable = false)
+    @JsonIgnore
+    private Account fromAccount;
 
-    @Column(nullable = false)
-    private String senderIban;
-
-    @Column(nullable = false)
-    private String receiverIban;
+    @ManyToOne
+    @JoinColumn(name = "to_account_id", nullable = false)
+    @JsonIgnore
+    private Account toAccount;
 
     @Column(nullable = false)
     private BigDecimal transactionAmount;

@@ -1,8 +1,11 @@
 package com.inholland.bank.controller;
 
 import com.inholland.bank.model.Account;
+import com.inholland.bank.model.Customer;
 import com.inholland.bank.model.dto.AccountDTO;
 import com.inholland.bank.model.dto.CustomerDTO;
+import com.inholland.bank.repository.AccountRepository;
+import com.inholland.bank.repository.CustomerRepository;
 import com.inholland.bank.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,8 +18,16 @@ import java.util.List;
 @RequestMapping("/accounts")
 public class AccountController {
 
+    private final AccountService accountService;
+    private final AccountRepository accountRepository;
+    private final CustomerRepository customerRepository;
+
     @Autowired
-    private AccountService accountService;
+    public AccountController(AccountService accountService, AccountRepository accountRepository, CustomerRepository customerRepository) {
+        this.accountService = accountService;
+        this.accountRepository = accountRepository;
+        this.customerRepository = customerRepository;
+    }
 
     @GetMapping
     public ResponseEntity<List<AccountDTO>> getAllAccounts() {
@@ -69,5 +80,15 @@ public class AccountController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<List<Account>> getAccountsByCustomerId(@PathVariable Long customerId) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        List<Account> accounts = accountRepository.findByCustomer(customer);
+        return ResponseEntity.ok(accounts);
+    }
+
 }
 

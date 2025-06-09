@@ -33,10 +33,15 @@ public class TransactionController {
         }
 
     }
-    // GET /api/transactions/customer/5
+    // GET /api/transactions/customer/{id}
     @GetMapping("/customer/{customerId}")
-    public List<Transaction> getCustomerTransactionHistory(@PathVariable Long customerId) {
-        return transactionService.getTransactionHistoryByCustomerId(customerId);
+    public ResponseEntity<List<Transaction>> getCustomerTransactionHistory(@PathVariable Long customerId) {
+        try {
+            List<Transaction> transactions = transactionService.getTransactionHistoryByCustomerId(customerId);
+            return ResponseEntity.ok(transactions);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 
     // POST /api/transactions/transfer
@@ -44,7 +49,7 @@ public class TransactionController {
     public ResponseEntity<String> transferBetweenAccounts(@RequestBody TransferRequestDTO dto) {
         try {
             transactionService.transferFunds(dto);
-            return new ResponseEntity<>("Transfer completed.", HttpStatus.CREATED);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Transfer completed.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Transfer failed: " + e.getMessage());
         }
