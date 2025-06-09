@@ -33,7 +33,7 @@ public class AccountController {
     public ResponseEntity<List<AccountDTO>> getAllAccounts() {
         try {
             List<AccountDTO> accounts = accountService.getAllAccounts();
-            return new ResponseEntity<>(accounts, HttpStatus.CREATED);
+            return new ResponseEntity<>(accounts, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
@@ -83,11 +83,15 @@ public class AccountController {
 
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<List<Account>> getAccountsByCustomerId(@PathVariable Long customerId) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        try {
+            Customer customer = customerRepository.findById(customerId)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        List<Account> accounts = accountRepository.findByCustomer(customer);
-        return ResponseEntity.ok(accounts);
+            List<Account> accounts = accountRepository.findByCustomer(customer);
+            return new ResponseEntity<>(accounts, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
     }
 
 }
