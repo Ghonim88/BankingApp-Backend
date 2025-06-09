@@ -28,7 +28,7 @@ public class Transaction {
     @JsonIgnore
     private Account toAccount;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal transactionAmount;
 
     @Column(nullable = false)

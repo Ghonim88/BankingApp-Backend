@@ -22,14 +22,17 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
+    private final TransactionExecutor transactionExecutor;
 
     @Autowired
     public TransactionService(TransactionRepository transactionRepository,
                               AccountRepository accountRepository,
-                              CustomerRepository customerRepository) {
+                              CustomerRepository customerRepository,
+                              TransactionExecutor transactionExecutor) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
+        this.transactionExecutor = transactionExecutor;
     }
 
     public List<TransactionDTO> getAllTransactions() {
@@ -40,7 +43,6 @@ public class TransactionService {
     }
 
     public void transferFunds(TransferRequestDTO dto) {
-
         if (dto.getAmount() == null) {
             throw new IllegalArgumentException("Amount in request cannot be null");
         }
@@ -53,7 +55,7 @@ public class TransactionService {
         transaction.setToAccount(to);
         transaction.setTransactionAmount(dto.getAmount());
 
-        this.transferFunds(transaction);
+        this.transferFunds(transaction); // now safe to call internally
     }
 
     public void transferFunds(Transaction transaction) {
@@ -67,20 +69,7 @@ public class TransactionService {
         validateAbsoluteLimit(from, amount);
         validateDailyLimit(from, amount);
 
-        performTransfer(from, to, amount);
-        recordTransaction(transaction);
-    }
-
-    private void recordTransaction(Transaction transaction) {
-        if (transaction.getCreatedAt() == null) {
-            transaction.setCreatedAt(LocalDateTime.now());
-        }
-
-        if (transaction.getFromAccount() == null || transaction.getToAccount() == null) {
-            throw new IllegalArgumentException("Transaction must have valid from/to accounts.");
-        }
-
-        transactionRepository.save(transaction);
+        transactionExecutor.executeTransaction(transaction);
     }
 
     public List<Transaction> getTransactionsForToday(Account account) {
@@ -130,13 +119,6 @@ public class TransactionService {
 
         if (totalTransferredToday.add(amount).compareTo(from.getDailyTransferLimit()) > 0)
             throw new IllegalArgumentException("Amount exceeds daily transfer limit for this account");
-    }
-
-    private void performTransfer(Account from, Account to, BigDecimal amount) {
-        from.setBalance(from.getBalance().subtract(amount));
-        to.setBalance(to.getBalance().add(amount));
-        accountRepository.save(from);
-        accountRepository.save(to);
     }
 
     public TransactionDTO convertToDTO(Transaction transaction) {

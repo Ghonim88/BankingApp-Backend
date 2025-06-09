@@ -9,7 +9,6 @@ public class TransferRequestDTO {
     private String fromIban;
     private String toIban;
 
-    @JsonDeserialize(using = NumberDeserializers.BigDecimalDeserializer.class)
     private BigDecimal amount;
 
 
