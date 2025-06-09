@@ -20,12 +20,12 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "from_account_id", nullable = false)
-    @JsonIgnore
+    //@JsonIgnore
     private Account fromAccount;
 
     @ManyToOne
     @JoinColumn(name = "to_account_id", nullable = false)
-    @JsonIgnore
+   // @JsonIgnore
     private Account toAccount;
 
     @Column(nullable = false, precision = 19, scale = 4)
