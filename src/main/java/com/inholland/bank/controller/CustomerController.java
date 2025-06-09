@@ -2,6 +2,7 @@ package com.inholland.bank.controller;
 
 import com.inholland.bank.model.AccountStatus;
 import com.inholland.bank.model.dto.CustomerDTO;
+import com.inholland.bank.model.dto.CustomerIbanDTO;
 import com.inholland.bank.service.CustomerService;
 import com.inholland.bank.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,5 +79,13 @@ public class CustomerController {
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<CustomerIbanDTO>> searchByName(@RequestParam String name) {
+        System.out.println("this is the name from search" +  name);
+        List<CustomerIbanDTO> result = customerService.searchCustomersByName(name);
+
+        return ResponseEntity.ok(result);
     }
 }
