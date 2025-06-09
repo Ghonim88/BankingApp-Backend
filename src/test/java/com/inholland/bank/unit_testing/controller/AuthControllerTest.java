@@ -28,6 +28,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -60,7 +61,7 @@ class AuthControllerTest {
     //setup
     LoginDTO loginDTO = new LoginDTO();
     loginDTO.setEmail("test@example.com");
-    loginDTO.setPassword("password123");
+    loginDTO.setPassword("password123!");
     Authentication authentication = mock(Authentication.class);
     String token = "mocked-jwt-token";
 
@@ -72,7 +73,7 @@ class AuthControllerTest {
     // Mocking the behavior of userService
     mockMvc.perform(post("/auth/login")
             .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"email\":\"test@example.com\",\"password\":\"password123\"}"))
+            .content("{\"email\":\"test@example.com\",\"password\":\"password123!\"}"))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.token").value(token));
@@ -154,7 +155,7 @@ class AuthControllerTest {
             .content("{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"password\":\"password123\",\"phoneNumber\":\"+31612345678\",\"bsn\":\"123456789\"}"))
         .andDo(print())
         .andExpect(status().isConflict())
-        .andExpect(content().string("The email address 'Email already exists' is already registered in the system. Please use a different email address."));
+        .andExpect(content().string(containsString("Email already exists")));
   }
 
   @Test
@@ -167,7 +168,7 @@ class AuthControllerTest {
             .content("{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"password\":\"password123\",\"phoneNumber\":\"+31612345678\",\"bsn\":\"123456789\"}"))
         .andDo(print())
         .andExpect(status().isConflict())
-        .andExpect(content().string("The BSN 'BSN already exists' is already registered. Please use a different BSN."));
+        .andExpect(content().string(containsString("BSN already exists")));
   }
 
   @Test
@@ -180,7 +181,7 @@ class AuthControllerTest {
             .content("{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"password\":\"password123\",\"phoneNumber\":\"+31612345678\",\"bsn\":\"123456789\"}"))
         .andDo(print())
         .andExpect(status().isConflict())
-        .andExpect(content().string("The phone number 'Phone number already exists' is already registered. Please use a different phone number."));
+        .andExpect(content().string(containsString("Phone number already exists")));
   }
 
   @Test

@@ -9,7 +9,7 @@ Feature: Authentication
 
 
   Scenario: Login with valid credentials
-    Given I provide login details with email "customer2@gmail.com" and password "Password2!"
+    Given I provide login details with email "sophie.martens@email.com" and password "Password1!"
     When I send a POST request to "/auth/login"
     Then I should receive a 200 status code
     And the response should contain a valid JWT token
@@ -17,7 +17,7 @@ Feature: Authentication
 
 
   Scenario: Login with invalid credentials
-    Given I provide login details with email "invalid.customer@gmail.com" and password "wrongpassword"
+    Given I provide login details with email "invalid.customer@gmail.com" and password "NotPassword!1"
     When I send a POST request to "/auth/login"
     Then I should receive a 401 status code
     And the response should indicate invalid credentials
