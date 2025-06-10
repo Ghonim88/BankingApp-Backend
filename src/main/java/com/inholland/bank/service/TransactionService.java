@@ -1,5 +1,6 @@
 package com.inholland.bank.service;
 
+import com.inholland.bank.exceptions.*;
 import com.inholland.bank.model.Account;
 import com.inholland.bank.model.Customer;
 import com.inholland.bank.model.Transaction;
@@ -44,19 +45,16 @@ public class TransactionService {
     }
 
     public void transferFunds(TransferRequestDTO dto) {
-        if (dto.getAmount() == null) {
-            throw new IllegalArgumentException("Amount in request cannot be null");
-        }
 
-        Account from = getAccountOrThrow(dto.getFromIban(), "Source account not found");
-        Account to = getAccountOrThrow(dto.getToIban(), "Destination account not found");
+        Account from = getAccountOrThrow(dto.getFromIban());
+        Account to = getAccountOrThrow(dto.getToIban());
 
         Transaction transaction = new Transaction();
         transaction.setFromAccount(from);
         transaction.setToAccount(to);
         transaction.setTransactionAmount(dto.getAmount());
 
-        this.transferFunds(transaction); // now safe to call internally
+        this.transferFunds(transaction);
     }
 
     public void transferFunds(Transaction transaction) {
@@ -81,18 +79,19 @@ public class TransactionService {
 
     private void validateAmount(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be provided and greater than zero");
+            throw new InvalidAmountException();
         }
     }
 
-    private Account getAccountOrThrow(String iban, String errorMsg) {
+    private Account getAccountOrThrow(String iban) {
         return accountRepository.findByIban(iban)
-                .orElseThrow(() -> new RuntimeException(errorMsg));
+                .orElseThrow(() -> new AccountNotFoundException("Account with IBAN " + iban + " was not found."));
     }
+
 
     public List<Transaction> getTransactionHistoryByCustomerId(Long customerId) {
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
 
         List<Account> accounts = accountRepository.findByCustomer(customer);
 
@@ -104,13 +103,13 @@ public class TransactionService {
 
     private void validateSufficientBalance(Account from, BigDecimal amount) {
         if (from.getBalance().compareTo(amount) < 0)
-            throw new IllegalArgumentException("Insufficient balance in source account");
+            throw new InsufficientFundsException();
     }
 
     private void validateAbsoluteLimit(Account from, BigDecimal amount) {
         BigDecimal remainingBalance = from.getBalance().subtract(amount);
         if (remainingBalance.compareTo(from.getAbsoluteTransferLimit()) < 0)
-            throw new IllegalArgumentException("Amount would exceed absolute transfer limit for this account");
+            throw new AbsoluteLimitExceededException();
     }
 
     private void validateDailyLimit(Account from, BigDecimal amount) {
@@ -119,7 +118,7 @@ public class TransactionService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         if (totalTransferredToday.add(amount).compareTo(from.getDailyTransferLimit()) > 0)
-            throw new IllegalArgumentException("Amount exceeds daily transfer limit for this account");
+            throw new DailyLimitExceededException();
     }
 
     public TransactionDTO convertToDTO(Transaction transaction) {
