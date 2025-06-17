@@ -11,6 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.inholland.bank.model.dto.AtmDepositRequestDTO;
+import com.inholland.bank.model.dto.AtmWithdrawRequestDTO;
+import java.math.BigDecimal;
+import java.util.Map;
+
 
 import java.util.List;
 
@@ -81,18 +86,50 @@ public class AccountController {
         }
     }
 
-    @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<Account>> getAccountsByCustomerId(@PathVariable Long customerId) {
-        try {
-            Customer customer = customerRepository.findById(customerId)
-                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+//    @GetMapping("/customer/{customerId}")
+//    public ResponseEntity<List<Account>> getAccountsByCustomerId(@PathVariable Long customerId) {
+//        try {
+//            Customer customer = customerRepository.findById(customerId)
+//                    .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-            List<Account> accounts = accountRepository.findByCustomer(customer);
-            return new ResponseEntity<>(accounts, HttpStatus.OK);
+//            List<Account> accounts = accountRepository.findByCustomer(customer);
+//            return new ResponseEntity<>(accounts, HttpStatus.OK);
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+//        }
+//    }
+
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<List<AccountDTO>> getAccountsByCustomerId(@PathVariable Long customerId) {
+        try {
+            List<Account> accounts = accountService.getAccountsByCustomerId(customerId);
+            List<AccountDTO> accountDTOs = accounts.stream()
+                    .map(accountService::convertToDTO)
+                    .toList();
+            return new ResponseEntity<>(accountDTOs, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
 
+    @PostMapping("/atm/deposit")
+    public ResponseEntity<?> depositToAccount(@RequestBody AtmDepositRequestDTO request) {
+        try {
+            BigDecimal newBalance = accountService.depositFixedAmount(request.getAccountId(), BigDecimal.valueOf(50));
+            return ResponseEntity.ok().body(Map.of("newBalance", newBalance));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/atm/withdraw")
+    public ResponseEntity<?> withdrawFromAccount(@RequestBody AtmWithdrawRequestDTO request) {
+        try {
+            BigDecimal newBalance = accountService.withdrawAmount(request.getAccountId(), request.getAmount());
+            return ResponseEntity.ok().body(Map.of("newBalance", newBalance));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 }
 
