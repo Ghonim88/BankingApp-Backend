@@ -4,6 +4,8 @@ import com.inholland.bank.model.Transaction;
 import com.inholland.bank.model.dto.TransactionDTO;
 import com.inholland.bank.model.dto.TransactionFilterDTO;
 import com.inholland.bank.model.dto.TransferRequestDTO;
+import com.inholland.bank.model.dto.AtmDepositRequestDTO;
+import com.inholland.bank.model.dto.AtmWithdrawRequestDTO;
 import com.inholland.bank.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,7 +13,9 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -78,4 +82,23 @@ public class TransactionController {
         }
     }
 
+    @PostMapping("/atm/deposit")
+    public ResponseEntity<?> depositWithTransaction(@RequestBody AtmDepositRequestDTO request) {
+        try {
+            BigDecimal newBalance = transactionService.depositWithTransaction(request.getAccountId(), BigDecimal.valueOf(50));
+            return ResponseEntity.ok(Map.of("newBalance", newBalance));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/atm/withdraw")
+    public ResponseEntity<?> withdrawWithTransaction(@RequestBody AtmWithdrawRequestDTO request) {
+        try {
+            BigDecimal newBalance = transactionService.withdrawWithTransaction(request.getAccountId(), request.getAmount());
+            return ResponseEntity.ok(Map.of("newBalance", newBalance));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 }

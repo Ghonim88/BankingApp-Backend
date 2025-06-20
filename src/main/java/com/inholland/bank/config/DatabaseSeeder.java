@@ -198,6 +198,7 @@ public class DatabaseSeeder {
             transaction.setToAccount(receiver);
             transaction.setTransactionAmount(BigDecimal.valueOf(5)); // Variable amount
             transaction.setCreatedAt(LocalDateTime.now());
+            transaction.setTransactionType(TransactionType.TRANSFER);
 
             try {
                 transactionService.transferFunds(transaction);

@@ -7,6 +7,7 @@ import com.inholland.bank.model.Transaction;
 import com.inholland.bank.model.dto.TransactionDTO;
 import com.inholland.bank.model.dto.TransactionFilterDTO;
 import com.inholland.bank.model.dto.TransferRequestDTO;
+import com.inholland.bank.model.TransactionType;
 import com.inholland.bank.repository.AccountRepository;
 import com.inholland.bank.repository.CustomerRepository;
 import com.inholland.bank.repository.TransactionRepository;
@@ -53,6 +54,7 @@ public class TransactionService {
         transaction.setFromAccount(from);
         transaction.setToAccount(to);
         transaction.setTransactionAmount(dto.getAmount());
+        transaction.setTransactionType(TransactionType.TRANSFER);  // <-- NEW
 
         this.transferFunds(transaction);
     }
@@ -128,6 +130,7 @@ public class TransactionService {
         dto.setSenderIban(transaction.getFromAccount().getIban());
         dto.setReceiverIban(transaction.getToAccount().getIban());
         dto.setCreatedAt(transaction.getCreatedAt());
+        dto.setTransactionType(transaction.getTransactionType());
 
         return dto;
     }
@@ -156,5 +159,49 @@ public class TransactionService {
                 .filter(t -> filter.getIban() == null || t.getFromAccount().getIban().equals(filter.getIban()) || t.getToAccount().getIban().equals(filter.getIban()))
                 .map(this::convertToDTO)
                 .toList();
+    }
+
+    // ----------------- ATM Specific Code -----------------
+
+    public BigDecimal depositWithTransaction(Long accountId, BigDecimal amount) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+
+        account.setBalance(account.getBalance().add(amount));
+        accountRepository.save(account);
+
+        Transaction transaction = new Transaction();
+        transaction.setFromAccount(account); // ATM deposit: from = to = account itself
+        transaction.setToAccount(account);
+        transaction.setTransactionAmount(amount);
+        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setTransactionType(TransactionType.ATM_DEPOSIT);
+
+        transactionExecutor.executeTransaction(transaction);
+
+        return account.getBalance();
+    }
+
+    public BigDecimal withdrawWithTransaction(Long accountId, BigDecimal amount) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+
+        if (account.getBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient funds");
+        }
+
+        account.setBalance(account.getBalance().subtract(amount));
+        accountRepository.save(account);
+
+        Transaction transaction = new Transaction();
+        transaction.setFromAccount(account);
+        transaction.setToAccount(account);
+        transaction.setTransactionAmount(amount.negate()); // withdrawals show as negative
+        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setTransactionType(TransactionType.ATM_WITHDRAWAL);
+
+        transactionExecutor.executeTransaction(transaction);
+
+        return account.getBalance();
     }
 }

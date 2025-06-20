@@ -91,25 +91,5 @@ public class AccountController {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
-
-    @PostMapping("/atm/deposit")
-    public ResponseEntity<?> depositToAccount(@RequestBody AtmDepositRequestDTO request) {
-        try {
-            BigDecimal newBalance = accountService.depositFixedAmount(request.getAccountId(), BigDecimal.valueOf(50));
-            return ResponseEntity.ok().body(Map.of("newBalance", newBalance));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
-
-    @PostMapping("/atm/withdraw")
-    public ResponseEntity<?> withdrawFromAccount(@RequestBody AtmWithdrawRequestDTO request) {
-        try {
-            BigDecimal newBalance = accountService.withdrawAmount(request.getAccountId(), request.getAmount());
-            return ResponseEntity.ok().body(Map.of("newBalance", newBalance));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
 }
 
