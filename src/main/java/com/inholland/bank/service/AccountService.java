@@ -39,44 +39,67 @@ public class AccountService {
     }
 
     @Transactional
-    public List<Account> createAccounts(List<AccountDTO> dtos) {
-        if (dtos.size() != 2) {
-            throw new InvalidAccountCreationRequestException("You cannot create more or less than 2 accounts for a single customer. (one checking, one savings)");
-        }
-
-        Set<AccountType> requestedTypes = dtos.stream()
-                .map(AccountDTO::getAccountType)
-                .collect(Collectors.toSet());
-
-        if (requestedTypes.size() != 2 ||
-                !requestedTypes.contains(AccountType.CHECKING) ||
-                !requestedTypes.contains(AccountType.SAVINGS)) {
-            throw new InvalidAccountCreationRequestException("Both CHECKING and SAVINGS accounts are required.");
-        }
-
-        Set<Long> customerIds = dtos.stream()
-                .map(AccountDTO::getCustomerId)
-                .collect(Collectors.toSet());
-        if (customerIds.size() != 1) {
-            throw new InvalidAccountCreationRequestException("All accounts must belong to the same customer.");
-        }
-
-        Long customerId = customerIds.iterator().next();
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new CustomerNotFoundException(customerId));
-
-
-        List<Account> existingAccounts = customer.getAccounts();
-        if (existingAccounts != null && !existingAccounts.isEmpty()) {
-            throw new InvalidAccountCreationRequestException("Customer already has accounts. Cannot create more than one CHECKING and one SAVINGS account.");
-        }
+    public List<AccountDTO> createAccounts(List<AccountDTO> dtos) {
+        validateAccountCreation(dtos);
 
         List<Account> accounts = dtos.stream()
                 .map(this::convertToEntity)
                 .toList();
 
-        return accountRepository.saveAll(accounts);
+        List<Account> savedAccounts = accountRepository.saveAll(accounts);
+        return savedAccounts.stream()
+                .map(this::convertToDTO)
+                .toList();
     }
+
+    private void validateAccountCreation(List<AccountDTO> dtos) {
+        validateExactlyTwoAccounts(dtos);
+        validateBothAccountTypesPresent(dtos);
+        Customer customer = validateSameCustomer(dtos);
+        validateCustomerHasNoAccounts(customer);
+    }
+
+    private void validateExactlyTwoAccounts(List<AccountDTO> dtos) {
+        if (dtos.size() != 2) {
+            throw new InvalidAccountCreationRequestException("You must create exactly two accounts: one CHECKING and one SAVINGS.");
+        }
+    }
+
+    private void validateBothAccountTypesPresent(List<AccountDTO> dtos) {
+        boolean hasChecking = false;
+        boolean hasSavings = false;
+
+        for (AccountDTO dto : dtos) {
+            if (dto.getAccountType() == AccountType.CHECKING) {
+                hasChecking = true;
+            } else if (dto.getAccountType() == AccountType.SAVINGS) {
+                hasSavings = true;
+            }
+        }
+
+        if (!(hasChecking && hasSavings)) {
+            throw new InvalidAccountCreationRequestException("Both CHECKING and SAVINGS accounts are required.");
+        }
+    }
+
+    private Customer validateSameCustomer(List<AccountDTO> dtos) {
+        Long customerId = dtos.get(0).getCustomerId();
+        for (AccountDTO dto : dtos) {
+            if (!customerId.equals(dto.getCustomerId())) {
+                throw new InvalidAccountCreationRequestException("All accounts must belong to the same customer.");
+            }
+        }
+        return customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
+    }
+
+    private void validateCustomerHasNoAccounts(Customer customer) {
+        List<Account> existingAccounts = customer.getAccounts();
+        if (existingAccounts != null && !existingAccounts.isEmpty()) {
+            throw new InvalidAccountCreationRequestException("Customer already has accounts. Cannot create more than one CHECKING and one SAVINGS account.");
+        }
+    }
+
 
     public String generateUniqueIban() {
         String iban;

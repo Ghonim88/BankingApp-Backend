@@ -47,10 +47,7 @@ public class AccountController {
     @PostMapping
     public ResponseEntity<List<AccountDTO>> createAccountsForCustomer(@RequestBody List<AccountDTO> accountDTOs) {
         try {
-            List<Account> savedAccounts = accountService.createAccounts(accountDTOs);
-            List<AccountDTO> response = savedAccounts.stream()
-                    .map(accountService::convertToDTO)
-                    .toList();
+            List<AccountDTO> response = accountService.createAccounts(accountDTOs);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
@@ -85,19 +82,6 @@ public class AccountController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
-
-//    @GetMapping("/customer/{customerId}")
-//    public ResponseEntity<List<Account>> getAccountsByCustomerId(@PathVariable Long customerId) {
-//        try {
-//            Customer customer = customerRepository.findById(customerId)
-//                    .orElseThrow(() -> new RuntimeException("Customer not found"));
-
-//            List<Account> accounts = accountRepository.findByCustomer(customer);
-//            return new ResponseEntity<>(accounts, HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-//        }
-//    }
 
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<List<AccountDTO>> getAccountsByCustomerId(@PathVariable Long customerId) {
