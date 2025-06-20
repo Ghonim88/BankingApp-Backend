@@ -6,6 +6,9 @@ import com.inholland.bank.model.dto.CustomerIbanDTO;
 import com.inholland.bank.service.CustomerService;
 import com.inholland.bank.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,10 +25,13 @@ public class CustomerController {
     private CustomerService customerService;
 
     @GetMapping
-    public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
+    public ResponseEntity<Page<CustomerDTO>> getAllCustomers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<CustomerDTO> customers = customerService.getAllCustomers();
-            return new ResponseEntity<>(customers, HttpStatus.CREATED);
+            Pageable pageable = PageRequest.of(page, size);
+            Page<CustomerDTO> result = customerService.getAllCustomers(pageable);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }

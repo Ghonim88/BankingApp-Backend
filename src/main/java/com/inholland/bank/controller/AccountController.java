@@ -24,14 +24,10 @@ import java.util.List;
 public class AccountController {
 
     private final AccountService accountService;
-    private final AccountRepository accountRepository;
-    private final CustomerRepository customerRepository;
 
     @Autowired
     public AccountController(AccountService accountService, AccountRepository accountRepository, CustomerRepository customerRepository) {
         this.accountService = accountService;
-        this.accountRepository = accountRepository;
-        this.customerRepository = customerRepository;
     }
 
     @GetMapping
