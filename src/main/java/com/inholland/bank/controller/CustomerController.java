@@ -37,33 +37,20 @@ public class CustomerController {
         }
     }
 
-    @GetMapping("/pending")
-    public ResponseEntity<List<CustomerDTO>> getPendingCustomers() {
+    @GetMapping("/status/{status}")
+    public ResponseEntity<Page<CustomerDTO>> getCustomersByStatus(
+            @PathVariable String status, // will auto-convert if enum name matches
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<CustomerDTO> pendingCustomers = customerService.getCustomersByStatus(AccountStatus.Pending);
-            return new ResponseEntity<>(pendingCustomers, HttpStatus.CREATED);
+            AccountStatus accountStatus = AccountStatus.valueOf(
+                    status.substring(0, 1).toUpperCase() + status.substring(1).toLowerCase()
+            );
+            Pageable pageable = PageRequest.of(page, size);
+            Page<CustomerDTO> result = customerService.getCustomersByStatus(accountStatus, pageable);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    @GetMapping("/verified")
-    public ResponseEntity<List<CustomerDTO>> getVerifiedCustomers() {
-        try {
-            List<CustomerDTO> verifiedCustomers = customerService.getCustomersByStatus(AccountStatus.Verified);
-            return new ResponseEntity<>(verifiedCustomers, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    @GetMapping("/closed")
-    public ResponseEntity<List<CustomerDTO>> getClosedCustomers() {
-        try {
-            List<CustomerDTO> closedCustomers = customerService.getCustomersByStatus(AccountStatus.Closed);
-            return new ResponseEntity<>(closedCustomers, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

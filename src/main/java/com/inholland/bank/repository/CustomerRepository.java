@@ -1,5 +1,7 @@
 package com.inholland.bank.repository;
 import com.inholland.bank.model.AccountStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import com.inholland.bank.model.Customer;
@@ -18,7 +20,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
   Optional<Customer> findByPhoneNumber(String phoneNumber);
   Optional<Customer> findByBsn(String bsn);
   Optional<Customer> findById(Long id);
-  List<Customer> findByAccountStatus(AccountStatus status);
+  Page<Customer> findByAccountStatus(AccountStatus status, Pageable pageable);
 
   List<Customer> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
 

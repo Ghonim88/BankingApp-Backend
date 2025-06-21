@@ -73,11 +73,9 @@ public class CustomerService {
             .map(this::convertToDTO);
   }
 
-  public List<CustomerDTO> getCustomersByStatus(AccountStatus status) {
-    List<Customer> customers = customerRepository.findByAccountStatus(status);
-    return customers.stream()
-            .map(this::convertToDTO)
-            .toList();
+  public Page<CustomerDTO> getCustomersByStatus(AccountStatus status, Pageable pageable) {
+    return customerRepository.findByAccountStatus(status, pageable)
+            .map(this::convertToDTO);
   }
 
   private CustomerDTO convertToDTO(Customer customer) {
