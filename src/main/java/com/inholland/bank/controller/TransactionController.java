@@ -11,12 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -77,12 +79,27 @@ public class TransactionController {
         }
     }
 
-    @PostMapping("/accounts/{accountId}/filter")
-    public ResponseEntity<List<TransactionDTO>> filterTransactions(
+    @GetMapping("/accounts/{accountId}/filter")
+    public ResponseEntity<Page<TransactionDTO>> filterTransactions(
             @PathVariable Long accountId,
-            @RequestBody TransactionFilterDTO filter) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
+            @RequestParam(required = false) String iban,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<TransactionDTO> result = transactionService.filterTransactions(accountId, filter);
+            TransactionFilterDTO filter = new TransactionFilterDTO();
+            filter.setStartDate(startDate);
+            filter.setEndDate(endDate);
+            filter.setMinAmount(minAmount);
+            filter.setMaxAmount(maxAmount);
+            filter.setIban(iban);
+
+            Pageable pageable = PageRequest.of(page, size);
+            Page<TransactionDTO> result = transactionService.filterTransactions(accountId, filter, pageable);
+
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);

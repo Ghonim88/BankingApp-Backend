@@ -13,6 +13,7 @@ import com.inholland.bank.repository.CustomerRepository;
 import com.inholland.bank.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 public class TransactionService {
@@ -145,20 +147,37 @@ public class TransactionService {
                 .toList();
     }
 
-    public List<TransactionDTO> filterTransactions(Long accountId, TransactionFilterDTO filter) {
+    public Page<TransactionDTO> filterTransactions(Long accountId, TransactionFilterDTO filter, Pageable pageable) {
+
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
 
-        List<Transaction> transactions = transactionRepository.findByFromAccountOrToAccount(account, account);
 
-        return transactions.stream()
-                .filter(t -> filter.getStartDate() == null || !t.getCreatedAt().toLocalDate().isBefore(filter.getStartDate()))
-                .filter(t -> filter.getEndDate() == null || !t.getCreatedAt().toLocalDate().isAfter(filter.getEndDate()))
-                .filter(t -> filter.getMinAmount() == null || t.getTransactionAmount().compareTo(filter.getMinAmount()) >= 0)
-                .filter(t -> filter.getMaxAmount() == null || t.getTransactionAmount().compareTo(filter.getMaxAmount()) <= 0)
-                .filter(t -> filter.getIban() == null || t.getFromAccount().getIban().equals(filter.getIban()) || t.getToAccount().getIban().equals(filter.getIban()))
-                .map(this::convertToDTO)
-                .toList();
+        List<Transaction> transactions = transactionRepository.findByFromAccountOrToAccount(account, account);
+        Stream<Transaction> filtered = transactions.stream();
+
+        if (filter.getStartDate() != null)
+            filtered = filtered.filter(t -> !t.getCreatedAt().toLocalDate().isBefore(filter.getStartDate()));
+        if (filter.getEndDate() != null)
+            filtered = filtered.filter(t -> !t.getCreatedAt().toLocalDate().isAfter(filter.getEndDate()));
+        if (filter.getMinAmount() != null)
+            filtered = filtered.filter(t -> t.getTransactionAmount().compareTo(filter.getMinAmount()) >= 0);
+        if (filter.getMaxAmount() != null)
+            filtered = filtered.filter(t -> t.getTransactionAmount().compareTo(filter.getMaxAmount()) <= 0);
+        if (filter.getIban() != null)
+            filtered = filtered.filter(t ->
+                    t.getFromAccount().getIban().equals(filter.getIban()) ||
+                            t.getToAccount().getIban().equals(filter.getIban())
+            );
+
+        List<TransactionDTO> dtos = filtered.map(this::convertToDTO).toList();
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), dtos.size());
+
+        List<TransactionDTO> pagedList = dtos.subList(start, end);
+
+        return new PageImpl<>(pagedList, pageable, dtos.size());
     }
 
     // ----------------- ATM Specific Code -----------------

@@ -40,8 +40,8 @@ public class SecurityConfig {
                     "/swagger-ui/**",
                     "/v3/api-docs/**",
                     "/auth/**").permitAll()
-        //.requestMatchers("/customers","/transactions", "/accounts").hasAuthority("EMPLOYEE") // Only allow EMPLOYEE
-        //.requestMatchers("/home", "/customerHome").hasAuthority( "CUSTOMER") // Allow CUSTOMER
+        .requestMatchers("/customers","/transactions", "/accounts").hasAuthority("EMPLOYEE") // Only allow EMPLOYEE
+        .requestMatchers("/home", "/customerHome").hasAuthority( "CUSTOMER") // Allow CUSTOMER
         .anyRequest().permitAll()
         )
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter

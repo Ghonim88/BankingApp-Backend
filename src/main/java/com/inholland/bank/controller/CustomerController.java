@@ -50,7 +50,7 @@ public class CustomerController {
             Page<CustomerDTO> result = customerService.getCustomersByStatus(accountStatus, pageable);
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -58,7 +58,7 @@ public class CustomerController {
     public ResponseEntity<CustomerDTO> getCustomerById(@PathVariable Long customerId) {
         try {
             CustomerDTO customer = customerService.getCustomerById(customerId);
-            return new ResponseEntity<>(customer, HttpStatus.CREATED);
+            return new ResponseEntity<>(customer, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
