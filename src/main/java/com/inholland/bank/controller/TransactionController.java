@@ -8,6 +8,9 @@ import com.inholland.bank.model.dto.AtmDepositRequestDTO;
 import com.inholland.bank.model.dto.AtmWithdrawRequestDTO;
 import com.inholland.bank.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -29,10 +32,14 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TransactionDTO>> getAllTransactions() {
+    public ResponseEntity<Page<TransactionDTO>> getAllTransactions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         try {
-            List<TransactionDTO> transactions = transactionService.getAllTransactions();
-            return new ResponseEntity<>(transactions, HttpStatus.CREATED);
+            Pageable pageable = PageRequest.of(page, size);
+            Page<TransactionDTO> result = transactionService.getAllTransactions(pageable);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }

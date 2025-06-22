@@ -12,6 +12,8 @@ import com.inholland.bank.repository.AccountRepository;
 import com.inholland.bank.repository.CustomerRepository;
 import com.inholland.bank.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -38,11 +40,9 @@ public class TransactionService {
         this.transactionExecutor = transactionExecutor;
     }
 
-    public List<TransactionDTO> getAllTransactions() {
-        List<Transaction> transactions = transactionRepository.findAll();
-        return transactions.stream()
-                .map(this::convertToDTO)
-                .toList();
+    public Page<TransactionDTO> getAllTransactions(Pageable pageable) {
+        return transactionRepository.findAll(pageable)
+                .map(this::convertToDTO);
     }
 
     public void transferFunds(TransferRequestDTO dto) {
