@@ -5,7 +5,9 @@ import com.inholland.bank.exceptions.CustomerNotFoundException;
 import com.inholland.bank.exceptions.EmailAlreadyExistsException;
 import com.inholland.bank.exceptions.PhoneAlreadyExistsException;
 import com.inholland.bank.model.AccountStatus;
+import com.inholland.bank.model.AccountType;
 import com.inholland.bank.model.dto.CustomerDTO;
+import com.inholland.bank.model.dto.CustomerIbanDTO;
 import org.springframework.stereotype.Service;
 import com.inholland.bank.model.Customer;
 import com.inholland.bank.repository.CustomerRepository;
@@ -95,6 +97,20 @@ public class CustomerService {
     Customer customer = customerRepository.findById(customerId)
             .orElseThrow(() -> new CustomerNotFoundException(customerId));
     return convertToDTO(customer);
+  }
+
+  public List<CustomerIbanDTO> searchCustomersByName(String name) {
+    List<Customer> customers = customerRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(name, name);
+
+    return customers.stream()
+            .map(c -> c.getAccounts().stream()
+                    .filter(acc -> acc.getAccountType() == AccountType.CHECKING)
+                    .findFirst()
+                    .map(acc -> new CustomerIbanDTO(c.getFirstName() + " " + c.getLastName(), acc.getIban()))
+            )
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .toList();
   }
 }
 

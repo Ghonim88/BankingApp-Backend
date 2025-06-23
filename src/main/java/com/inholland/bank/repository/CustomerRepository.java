@@ -20,4 +20,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
   Optional<Customer> findById(Long id);
   List<Customer> findByAccountStatus(AccountStatus status);
 
+  List<Customer> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
+
+
 }
