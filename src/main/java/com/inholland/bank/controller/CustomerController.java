@@ -6,6 +6,9 @@ import com.inholland.bank.model.dto.CustomerIbanDTO;
 import com.inholland.bank.service.CustomerService;
 import com.inholland.bank.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,40 +25,30 @@ public class CustomerController {
     private CustomerService customerService;
 
     @GetMapping
-    public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
+    public ResponseEntity<Page<CustomerDTO>> getAllCustomers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<CustomerDTO> customers = customerService.getAllCustomers();
-            return new ResponseEntity<>(customers, HttpStatus.CREATED);
+            Pageable pageable = PageRequest.of(page, size);
+            Page<CustomerDTO> result = customerService.getAllCustomers(pageable);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
 
-    @GetMapping("/pending")
-    public ResponseEntity<List<CustomerDTO>> getPendingCustomers() {
+    @GetMapping("/status/{status}")
+    public ResponseEntity<Page<CustomerDTO>> getCustomersByStatus(
+            @PathVariable String status, // will auto-convert if enum name matches
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<CustomerDTO> pendingCustomers = customerService.getCustomersByStatus(AccountStatus.Pending);
-            return new ResponseEntity<>(pendingCustomers, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    @GetMapping("/verified")
-    public ResponseEntity<List<CustomerDTO>> getVerifiedCustomers() {
-        try {
-            List<CustomerDTO> verifiedCustomers = customerService.getCustomersByStatus(AccountStatus.Verified);
-            return new ResponseEntity<>(verifiedCustomers, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    @GetMapping("/closed")
-    public ResponseEntity<List<CustomerDTO>> getClosedCustomers() {
-        try {
-            List<CustomerDTO> closedCustomers = customerService.getCustomersByStatus(AccountStatus.Closed);
-            return new ResponseEntity<>(closedCustomers, HttpStatus.CREATED);
+            AccountStatus accountStatus = AccountStatus.valueOf(
+                    status.substring(0, 1).toUpperCase() + status.substring(1).toLowerCase()
+            );
+            Pageable pageable = PageRequest.of(page, size);
+            Page<CustomerDTO> result = customerService.getCustomersByStatus(accountStatus, pageable);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
@@ -65,7 +58,7 @@ public class CustomerController {
     public ResponseEntity<CustomerDTO> getCustomerById(@PathVariable Long customerId) {
         try {
             CustomerDTO customer = customerService.getCustomerById(customerId);
-            return new ResponseEntity<>(customer, HttpStatus.CREATED);
+            return new ResponseEntity<>(customer, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }

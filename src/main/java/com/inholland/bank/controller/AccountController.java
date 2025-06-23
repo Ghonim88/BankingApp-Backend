@@ -11,6 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.inholland.bank.model.dto.AtmDepositRequestDTO;
+import com.inholland.bank.model.dto.AtmWithdrawRequestDTO;
+import java.math.BigDecimal;
+import java.util.Map;
+
 
 import java.util.List;
 
@@ -19,14 +24,10 @@ import java.util.List;
 public class AccountController {
 
     private final AccountService accountService;
-    private final AccountRepository accountRepository;
-    private final CustomerRepository customerRepository;
 
     @Autowired
     public AccountController(AccountService accountService, AccountRepository accountRepository, CustomerRepository customerRepository) {
         this.accountService = accountService;
-        this.accountRepository = accountRepository;
-        this.customerRepository = customerRepository;
     }
 
     @GetMapping
@@ -42,10 +43,7 @@ public class AccountController {
     @PostMapping
     public ResponseEntity<List<AccountDTO>> createAccountsForCustomer(@RequestBody List<AccountDTO> accountDTOs) {
         try {
-            List<Account> savedAccounts = accountService.createAccounts(accountDTOs);
-            List<AccountDTO> response = savedAccounts.stream()
-                    .map(accountService::convertToDTO)
-                    .toList();
+            List<AccountDTO> response = accountService.createAccounts(accountDTOs);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
@@ -82,17 +80,16 @@ public class AccountController {
     }
 
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<Account>> getAccountsByCustomerId(@PathVariable Long customerId) {
+    public ResponseEntity<List<AccountDTO>> getAccountsByCustomerId(@PathVariable Long customerId) {
         try {
-            Customer customer = customerRepository.findById(customerId)
-                    .orElseThrow(() -> new RuntimeException("Customer not found"));
-
-            List<Account> accounts = accountRepository.findByCustomer(customer);
-            return new ResponseEntity<>(accounts, HttpStatus.OK);
+            List<Account> accounts = accountService.getAccountsByCustomerId(customerId);
+            List<AccountDTO> accountDTOs = accounts.stream()
+                    .map(accountService::convertToDTO)
+                    .toList();
+            return new ResponseEntity<>(accountDTOs, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
-
 }
 

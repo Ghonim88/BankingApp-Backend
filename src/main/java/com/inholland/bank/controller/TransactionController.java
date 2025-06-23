@@ -4,14 +4,23 @@ import com.inholland.bank.model.Transaction;
 import com.inholland.bank.model.dto.TransactionDTO;
 import com.inholland.bank.model.dto.TransactionFilterDTO;
 import com.inholland.bank.model.dto.TransferRequestDTO;
+import com.inholland.bank.model.dto.AtmDepositRequestDTO;
+import com.inholland.bank.model.dto.AtmWithdrawRequestDTO;
 import com.inholland.bank.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -25,10 +34,14 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TransactionDTO>> getAllTransactions() {
+    public ResponseEntity<Page<TransactionDTO>> getAllTransactions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         try {
-            List<TransactionDTO> transactions = transactionService.getAllTransactions();
-            return new ResponseEntity<>(transactions, HttpStatus.CREATED);
+            Pageable pageable = PageRequest.of(page, size);
+            Page<TransactionDTO> result = transactionService.getAllTransactions(pageable);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
@@ -66,16 +79,50 @@ public class TransactionController {
         }
     }
 
-    @PostMapping("/accounts/{accountId}/filter")
-    public ResponseEntity<List<TransactionDTO>> filterTransactions(
+    @GetMapping("/accounts/{accountId}/filter")
+    public ResponseEntity<Page<TransactionDTO>> filterTransactions(
             @PathVariable Long accountId,
-            @RequestBody TransactionFilterDTO filter) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
+            @RequestParam(required = false) String iban,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<TransactionDTO> result = transactionService.filterTransactions(accountId, filter);
+            TransactionFilterDTO filter = new TransactionFilterDTO();
+            filter.setStartDate(startDate);
+            filter.setEndDate(endDate);
+            filter.setMinAmount(minAmount);
+            filter.setMaxAmount(maxAmount);
+            filter.setIban(iban);
+
+            Pageable pageable = PageRequest.of(page, size);
+            Page<TransactionDTO> result = transactionService.filterTransactions(accountId, filter, pageable);
+
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
 
+    @PostMapping("/atm/deposit")
+    public ResponseEntity<?> depositWithTransaction(@RequestBody AtmDepositRequestDTO request) {
+        try {
+            BigDecimal newBalance = transactionService.depositWithTransaction(request.getAccountId(), BigDecimal.valueOf(50));
+            return ResponseEntity.ok(Map.of("newBalance", newBalance));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/atm/withdraw")
+    public ResponseEntity<?> withdrawWithTransaction(@RequestBody AtmWithdrawRequestDTO request) {
+        try {
+            BigDecimal newBalance = transactionService.withdrawWithTransaction(request.getAccountId(), request.getAmount());
+            return ResponseEntity.ok(Map.of("newBalance", newBalance));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 }
