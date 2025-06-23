@@ -1,9 +1,11 @@
-// TransactionServiceTest.java (UNIT TEST)
 package com.inholland.bank.unit_testing.service;
 
+import com.inholland.bank.exceptions.DailyLimitExceededException;
+import com.inholland.bank.exceptions.InvalidAmountException;
 import com.inholland.bank.model.Account;
 import com.inholland.bank.model.Customer;
 import com.inholland.bank.model.Transaction;
+import com.inholland.bank.model.dto.TransferRequestDTO;
 import com.inholland.bank.repository.AccountRepository;
 import com.inholland.bank.repository.CustomerRepository;
 import com.inholland.bank.repository.TransactionRepository;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -94,5 +97,126 @@ public class TransactionServiceTest {
         assertEquals("Insufficient funds", exception.getMessage());
         verify(accountRepository, never()).save(any(Account.class));
         verify(transactionExecutor, never()).executeTransaction(any(Transaction.class));
+    }
+
+    @Test
+    public void testTransferFunds_Successful() {
+        String fromIban = "NL01INHO0000000001";
+        String toIban = "NL01INHO0000000002";
+        BigDecimal amount = new BigDecimal("100.00");
+
+        Account fromAccount = new Account();
+        fromAccount.setIban(fromIban);
+        fromAccount.setBalance(new BigDecimal("500.00"));
+        fromAccount.setAbsoluteTransferLimit(new BigDecimal("-500.00"));
+        fromAccount.setDailyTransferLimit(new BigDecimal("1000.00"));
+
+        Account toAccount = new Account();
+        toAccount.setIban(toIban);
+        toAccount.setBalance(new BigDecimal("300.00"));
+
+        TransferRequestDTO dto = new TransferRequestDTO();
+        dto.setFromIban(fromIban);
+        dto.setToIban(toIban);
+        dto.setAmount(amount);
+
+        when(accountRepository.findByIban(fromIban)).thenReturn(Optional.of(fromAccount));
+        when(accountRepository.findByIban(toIban)).thenReturn(Optional.of(toAccount));
+        when(transactionRepository.findByFromAccountAndCreatedAtBetween(eq(fromAccount), any(), any())).thenReturn(List.of());
+
+        transactionService.transferFunds(dto);
+
+        verify(transactionExecutor, times(1)).executeTransaction(any(Transaction.class));
+    }
+
+    @Test
+    public void testTransferFunds_InvalidAmount_ThrowsException() {
+        Account fromAccount = new Account();
+        fromAccount.setIban("FROM");
+        fromAccount.setBalance(new BigDecimal("100.00"));
+        fromAccount.setAbsoluteTransferLimit(new BigDecimal("-100.00"));
+        fromAccount.setDailyTransferLimit(new BigDecimal("500.00"));
+
+        Account toAccount = new Account();
+        toAccount.setIban("TO");
+        toAccount.setBalance(new BigDecimal("100.00"));
+
+        TransferRequestDTO dto = new TransferRequestDTO();
+        dto.setFromIban("FROM");
+        dto.setToIban("TO");
+        dto.setAmount(BigDecimal.ZERO); // Invalid
+
+        when(accountRepository.findByIban("FROM")).thenReturn(Optional.of(fromAccount));
+        when(accountRepository.findByIban("TO")).thenReturn(Optional.of(toAccount));
+
+        assertThrows(InvalidAmountException.class, () -> {
+            transactionService.transferFunds(dto);
+        });
+
+        verify(transactionExecutor, never()).executeTransaction(any(Transaction.class));
+    }
+
+    @Test
+    public void testTransferFunds_ExceedsDailyLimit_ThrowsException() {
+        String fromIban = "FROM";
+        String toIban = "TO";
+        BigDecimal transferAmount = new BigDecimal("600.00");
+
+        Account from = new Account();
+        from.setIban(fromIban);
+        from.setBalance(new BigDecimal("1000.00"));
+        from.setDailyTransferLimit(new BigDecimal("1000.00"));
+        from.setAbsoluteTransferLimit(new BigDecimal("-100.00"));
+
+        Account to = new Account();
+        to.setIban(toIban);
+        to.setBalance(new BigDecimal("500.00"));
+
+        Transaction existing = new Transaction();
+        existing.setTransactionAmount(new BigDecimal("500.00"));
+
+        TransferRequestDTO dto = new TransferRequestDTO();
+        dto.setFromIban(fromIban);
+        dto.setToIban(toIban);
+        dto.setAmount(transferAmount);
+
+        when(accountRepository.findByIban(fromIban)).thenReturn(Optional.of(from));
+        when(accountRepository.findByIban(toIban)).thenReturn(Optional.of(to));
+        when(transactionRepository.findByFromAccountAndCreatedAtBetween(eq(from), any(), any()))
+                .thenReturn(List.of(existing));
+
+        assertThrows(DailyLimitExceededException.class, () -> {
+            transactionService.transferFunds(dto);
+        });
+
+        verify(transactionExecutor, never()).executeTransaction(any(Transaction.class));
+    }
+
+    @Test
+    public void testGetTransactionHistoryByCustomerId() {
+        Long customerId = 1L;
+
+        Customer customer = new Customer();
+        Account account1 = new Account();
+        Account account2 = new Account();
+        account1.setIban("IBAN1");
+        account2.setIban("IBAN2");
+
+        customer.setAccounts(List.of(account1, account2));
+
+        Transaction t1 = new Transaction();
+        Transaction t2 = new Transaction();
+        Transaction t3 = new Transaction();
+
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(accountRepository.findByCustomer(customer)).thenReturn(List.of(account1, account2));
+        when(transactionRepository.findByFromAccountOrToAccount(account1, account1)).thenReturn(List.of(t1));
+        when(transactionRepository.findByFromAccountOrToAccount(account2, account2)).thenReturn(List.of(t2, t3));
+
+        var result = transactionService.getTransactionHistoryByCustomerId(customerId);
+
+        assertEquals(3, result.size());
+        verify(customerRepository).findById(customerId);
+        verify(accountRepository).findByCustomer(customer);
     }
 }
