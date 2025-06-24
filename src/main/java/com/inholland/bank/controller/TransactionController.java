@@ -114,7 +114,10 @@ public class TransactionController {
     @PostMapping("/atm/deposit")
     public ResponseEntity<?> depositWithTransaction(@RequestBody AtmDepositRequestDTO request) {
         try {
-            BigDecimal newBalance = transactionService.depositWithTransaction(request.getAccountId(), BigDecimal.valueOf(50));
+            BigDecimal newBalance = transactionService.depositWithTransaction(
+                    request.getAccountId(),
+                    request.getAmount()
+            );
             return ResponseEntity.ok(Map.of("newBalance", newBalance));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
