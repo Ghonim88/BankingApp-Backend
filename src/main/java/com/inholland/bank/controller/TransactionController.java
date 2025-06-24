@@ -6,6 +6,7 @@ import com.inholland.bank.model.dto.TransactionFilterDTO;
 import com.inholland.bank.model.dto.TransferRequestDTO;
 import com.inholland.bank.model.dto.AtmDepositRequestDTO;
 import com.inholland.bank.model.dto.AtmWithdrawRequestDTO;
+import com.inholland.bank.model.dto.TransferResponseDTO;
 import com.inholland.bank.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -60,12 +61,16 @@ public class TransactionController {
 
     // POST /api/transactions/transfer
     @PostMapping("/transfer")
-    public ResponseEntity<String> transferBetweenAccounts(@RequestBody TransferRequestDTO dto) {
+    public ResponseEntity<TransferResponseDTO> transferBetweenAccounts(@RequestBody TransferRequestDTO dto) {
         try {
             transactionService.transferFunds(dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Transfer completed.");
+
+            TransferResponseDTO response = new TransferResponseDTO("success", "Transfer completed.");
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Transfer failed: " + e.getMessage());
+            TransferResponseDTO response = new TransferResponseDTO("error", "Transfer failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 
