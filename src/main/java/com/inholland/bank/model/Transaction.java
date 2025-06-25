@@ -1,5 +1,6 @@
 package com.inholland.bank.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -37,5 +38,10 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false)
     private TransactionType transactionType;
+
+    @ManyToOne
+    @JoinColumn(name = "initiator_id")
+    @JsonBackReference
+    private User initiator;
 
 }

@@ -5,10 +5,12 @@ import com.inholland.bank.exceptions.InvalidAmountException;
 import com.inholland.bank.model.Account;
 import com.inholland.bank.model.Customer;
 import com.inholland.bank.model.Transaction;
+import com.inholland.bank.model.User;
 import com.inholland.bank.model.dto.TransferRequestDTO;
 import com.inholland.bank.repository.AccountRepository;
 import com.inholland.bank.repository.CustomerRepository;
 import com.inholland.bank.repository.TransactionRepository;
+import com.inholland.bank.repository.UserRepository;
 import com.inholland.bank.service.TransactionExecutor;
 import com.inholland.bank.service.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +30,7 @@ public class TransactionServiceTest {
     private CustomerRepository customerRepository;
     private TransactionExecutor transactionExecutor;
     private TransactionService transactionService;
+    private UserRepository userRepository;
 
     @BeforeEach
     public void setUp() {
@@ -35,7 +38,8 @@ public class TransactionServiceTest {
         accountRepository = mock(AccountRepository.class);
         customerRepository = mock(CustomerRepository.class);
         transactionExecutor = mock(TransactionExecutor.class);
-        transactionService = new TransactionService(transactionRepository, accountRepository, customerRepository, transactionExecutor);
+        userRepository = mock(UserRepository.class);
+        transactionService = new TransactionService(transactionRepository, accountRepository, customerRepository, transactionExecutor, userRepository);
     }
 
     @Test

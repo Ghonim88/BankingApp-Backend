@@ -1,16 +1,15 @@
 package com.inholland.bank.service;
 
 import com.inholland.bank.exceptions.*;
-import com.inholland.bank.model.Account;
-import com.inholland.bank.model.Customer;
-import com.inholland.bank.model.Transaction;
+import com.inholland.bank.model.*;
 import com.inholland.bank.model.dto.TransactionDTO;
 import com.inholland.bank.model.dto.TransactionFilterDTO;
+import com.inholland.bank.model.dto.TransactionResponseDTO;
 import com.inholland.bank.model.dto.TransferRequestDTO;
-import com.inholland.bank.model.TransactionType;
 import com.inholland.bank.repository.AccountRepository;
 import com.inholland.bank.repository.CustomerRepository;
 import com.inholland.bank.repository.TransactionRepository;
+import com.inholland.bank.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,21 +29,23 @@ public class TransactionService {
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
     private final TransactionExecutor transactionExecutor;
+    private final UserRepository userRepository;
 
     @Autowired
     public TransactionService(TransactionRepository transactionRepository,
                               AccountRepository accountRepository,
                               CustomerRepository customerRepository,
-                              TransactionExecutor transactionExecutor) {
+                              TransactionExecutor transactionExecutor, UserRepository userRepository) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.transactionExecutor = transactionExecutor;
+        this.userRepository = userRepository;
     }
 
-    public Page<TransactionDTO> getAllTransactions(Pageable pageable) {
+    public Page<TransactionResponseDTO> getAllTransactions(Pageable pageable) {
         return transactionRepository.findAll(pageable)
-                .map(this::convertToDTO);
+                .map(this::convertToResponseDTO);
     }
 
     public void transferFunds(TransferRequestDTO dto) {
@@ -57,7 +58,7 @@ public class TransactionService {
         transaction.setToAccount(to);
         transaction.setTransactionAmount(dto.getAmount());
         transaction.setTransactionType(TransactionType.TRANSFER);  // <-- NEW
-
+        transaction.setInitiator(userRepository.findById(dto.getInitiatorId()).orElse(null));
         this.transferFunds(transaction);
     }
 
@@ -67,6 +68,7 @@ public class TransactionService {
         Account from = transaction.getFromAccount();
         Account to = transaction.getToAccount();
         BigDecimal amount = transaction.getTransactionAmount();
+        User initiator = transaction.getInitiator();
 
         validateSufficientBalance(from, amount);
         validateAbsoluteLimit(from, amount);
@@ -133,7 +135,7 @@ public class TransactionService {
         dto.setReceiverIban(transaction.getToAccount().getIban());
         dto.setCreatedAt(transaction.getCreatedAt());
         dto.setTransactionType(transaction.getTransactionType());
-
+        dto.setInitiatorId(transaction.getInitiator().getUserId());
         return dto;
     }
 
@@ -178,6 +180,39 @@ public class TransactionService {
         List<TransactionDTO> pagedList = dtos.subList(start, end);
 
         return new PageImpl<>(pagedList, pageable, dtos.size());
+    }
+
+    private TransactionResponseDTO convertToResponseDTO(Transaction transaction) {
+        TransactionResponseDTO dto = new TransactionResponseDTO();
+        dto.setId(transaction.getTransactionId());
+        dto.setFromIban(transaction.getFromAccount().getIban());
+        dto.setToIban(transaction.getToAccount().getIban());
+        dto.setAmount(transaction.getTransactionAmount());
+        dto.setCreatedAt(transaction.getCreatedAt());
+        dto.setTransactionType(transaction.getTransactionType().toString());
+
+        // Set full name of sender
+        if (transaction.getFromAccount().getCustomer() != null) {
+            User sender = transaction.getFromAccount().getCustomer();
+            dto.setFromAccountHolderName(sender.getFirstName() + " " + sender.getLastName());
+        }
+
+        // Set full name of receiver
+        if (transaction.getToAccount().getCustomer() != null) {
+            User receiver = transaction.getToAccount().getCustomer();
+            dto.setToAccountHolderName(receiver.getFirstName() + " " + receiver.getLastName());
+        }
+
+        // Initiator (could be employee or customer)
+
+        if (transaction.getInitiator() != null) {
+            dto.setInitiatorName(
+                    transaction.getInitiator().getFirstName() + " " + transaction.getInitiator().getLastName()
+            );
+            dto.setInitiatorRole(transaction.getInitiator().getUserRole().toString());
+        }
+
+        return dto;
     }
 
     // ----------------- ATM Specific Code -----------------
