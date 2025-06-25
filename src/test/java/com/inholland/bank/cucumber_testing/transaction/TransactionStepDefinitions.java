@@ -76,7 +76,7 @@ public class TransactionStepDefinitions {
         System.out.println("Receiver IBAN: " + receiverIban);
     }
 
-    @When("I transfer {double} from the CHECKING to the SAVINGS account")
+    @When("I transfer {double} from the CHECKING to the CHECKING account")
     public void i_transfer_funds(double amount) {
         String transferJson = String.format("""
             {
@@ -135,7 +135,7 @@ public class TransactionStepDefinitions {
         senderIban = ibans.get(0);
     }
 
-    @When("I attempt to transfer {double} from the CHECKING to the SAVINGS account")
+    @When("I attempt to transfer {double} from the CHECKING to the CHECKING account")
     public void i_attempt_transfer_invalid(double amount) {
         i_transfer_funds(amount); // reusing logic
     }
