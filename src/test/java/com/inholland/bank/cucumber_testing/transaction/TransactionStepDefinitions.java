@@ -42,41 +42,32 @@ public class TransactionStepDefinitions {
     }
 
     @Given("two customers with verified accounts exist")
-    public void customers_with_verified_accounts_exist() {
-        // Assumes seeder already created at least 2 verified customers with accounts
+    public void customers_with_verified_accounts_exist() { }
+
+    private String getCheckingIbanForCustomer(int customerId) {
+        ResponseEntity<String> response = restTemplate.exchange(
+                baseUrl + "accounts/customer/" + customerId,
+                HttpMethod.GET,
+                new HttpEntity<>(getAuthHeaders()),
+                String.class
+        );
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        List<String> ibans = JsonPath.read(response.getBody(), "$.[?(@.accountType == 'CHECKING')].iban");
+        assertFalse(ibans.isEmpty(), "No CHECKING account found for customer " + customerId);
+        return ibans.getFirst();
     }
 
     @Given("I get the IBAN of customer 2's CHECKING account")
     public void get_customer1_checking_iban() {
-        ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "accounts/customer/2",
-                HttpMethod.GET,
-                new HttpEntity<>(getAuthHeaders()),
-                String.class
-        );
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<String> ibans = JsonPath.read(response.getBody(), "$.[?(@.accountType == 'CHECKING')].iban");
-        assertFalse(ibans.isEmpty(), "No CHECKING account found for customer 1");
-        senderIban = ibans.get(0);
-        System.out.println("Sender IBAN: " + senderIban);
+        senderIban = getCheckingIbanForCustomer(2);
     }
 
     @Given("I get the IBAN of customer 3's CHECKING account")
-    public void get_customer2_savings_iban() {
-        ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "accounts/customer/3",
-                HttpMethod.GET,
-                new HttpEntity<>(getAuthHeaders()),
-                String.class
-        );
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<String> ibans = JsonPath.read(response.getBody(), "$.[?(@.accountType == 'CHECKING')].iban");
-        assertFalse(ibans.isEmpty(), "No CHECKING account found for customer 2");
-        receiverIban = ibans.get(0);
-        System.out.println("Receiver IBAN: " + receiverIban);
+    public void get_customer2_checking_iban() {
+        receiverIban = getCheckingIbanForCustomer(3);
     }
 
-    @When("I transfer {double} from the CHECKING to the SAVINGS account")
+    @When("I transfer {double} from the CHECKING to the CHECKING account")
     public void i_transfer_funds(double amount) {
         String transferJson = String.format("""
             {
@@ -104,9 +95,13 @@ public class TransactionStepDefinitions {
         assertEquals(expectedStatus, response.getStatusCodeValue());
     }
 
-    @Then("the response should confirm the transfer was completed")
-    public void response_should_confirm_transfer() {
-        assertTrue(response.getBody().contains("Transfer completed"), "Expected transfer confirmation in response");
+    @Then("the response should have status {string} and message {string}")
+    public void response_should_have_status_and_message(String expectedStatus, String expectedMessage) {
+        String actualStatus = JsonPath.read(response.getBody(), "$.status");
+        String actualMessage = JsonPath.read(response.getBody(), "$.message");
+
+        assertEquals(expectedStatus, actualStatus, "Status value did not match.");
+        assertEquals(expectedMessage, actualMessage, "Message value did not match.");
     }
 
     private HttpHeaders getAuthHeaders() {
@@ -116,15 +111,12 @@ public class TransactionStepDefinitions {
     }
 
     @Given("a customer with low balance exists")
-    public void customer_with_low_balance_exists() {
-        // Already assumed seeded; ensure balance is low or mock it
-        // You can use a known customer (e.g., ID 4) with €0 balance
-    }
+    public void customer_with_low_balance_exists() { }
 
     @Given("I get the IBAN of that customer's CHECKING account")
     public void get_low_balance_customer_iban() {
         ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "accounts/customer/4",  // use a known ID
+                baseUrl + "accounts/customer/4",
                 HttpMethod.GET,
                 new HttpEntity<>(getAuthHeaders()),
                 String.class
@@ -135,9 +127,9 @@ public class TransactionStepDefinitions {
         senderIban = ibans.get(0);
     }
 
-    @When("I attempt to transfer {double} from the CHECKING to the SAVINGS account")
+    @When("I attempt to transfer {double} from the CHECKING to the CHECKING account")
     public void i_attempt_transfer_invalid(double amount) {
-        i_transfer_funds(amount); // reusing logic
+        i_transfer_funds(amount);
     }
 
     @Then("the response should contain {string}")
@@ -162,5 +154,4 @@ public class TransactionStepDefinitions {
         List<?> transactions = JsonPath.read(response.getBody(), "$");
         assertTrue(transactions.size() >= count, "Expected at least " + count + " transactions, got " + transactions.size());
     }
-
 }
