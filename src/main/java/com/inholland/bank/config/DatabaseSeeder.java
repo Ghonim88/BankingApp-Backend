@@ -6,6 +6,7 @@ import com.inholland.bank.model.dto.EmployeeDTO;
 import com.inholland.bank.model.dto.CustomerDTO;
 import com.inholland.bank.repository.AccountRepository;
 import com.inholland.bank.repository.CustomerRepository;
+import com.inholland.bank.repository.UserRepository;
 import com.inholland.bank.service.AccountService;
 import com.inholland.bank.service.EmployeeService;
 import com.inholland.bank.service.CustomerService;
@@ -26,19 +27,21 @@ public class DatabaseSeeder {
     private final AccountRepository accountRepository;
     private final AccountService accountService;
     private final TransactionService transactionService;
+    private final UserRepository userRepository;
 
     public DatabaseSeeder(EmployeeService employeeService,
                           CustomerService customerService,
                           CustomerRepository customerRepository,
                           AccountRepository accountRepository,
                           AccountService accountService,
-                          TransactionService transactionService) {
+                          TransactionService transactionService, UserRepository userRepository) {
         this.employeeService = employeeService;
         this.customerService = customerService;
         this.customerRepository = customerRepository;
         this.accountRepository = accountRepository;
         this.accountService = accountService;
         this.transactionService = transactionService;
+        this.userRepository = userRepository;
     }
 
 
@@ -199,6 +202,9 @@ public class DatabaseSeeder {
             transaction.setTransactionAmount(BigDecimal.valueOf(5)); // Variable amount
             transaction.setCreatedAt(LocalDateTime.now());
             transaction.setTransactionType(TransactionType.TRANSFER);
+            User initiator = userRepository.findById(1L)
+                    .orElseThrow(() -> new RuntimeException("User not found for seeding"));
+            transaction.setInitiator(initiator);
 
             try {
                 transactionService.transferFunds(transaction);
@@ -208,6 +214,7 @@ public class DatabaseSeeder {
             }
         }
     }
+
     public void seedAll() {
         seedEmployees();
         seedCustomers();

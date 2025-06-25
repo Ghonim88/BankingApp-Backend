@@ -10,7 +10,7 @@ public class TransferRequestDTO {
     private String toIban;
 
     private BigDecimal amount;
-
+    private Long initiatorId;
 
     public TransferRequestDTO() {
         // Default constructor
@@ -38,5 +38,13 @@ public class TransferRequestDTO {
 
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public void setInitiatorId(Long id) {
+        this.initiatorId = id;
+    }
+
+    public Long getInitiatorId() {
+        return initiatorId;
     }
 }

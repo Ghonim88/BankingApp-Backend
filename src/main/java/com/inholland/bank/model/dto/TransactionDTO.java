@@ -18,4 +18,5 @@ public class TransactionDTO {
     private BigDecimal transactionAmount;
     private LocalDateTime createdAt;
     private TransactionType transactionType;
+    private Long initiatorId;
 }

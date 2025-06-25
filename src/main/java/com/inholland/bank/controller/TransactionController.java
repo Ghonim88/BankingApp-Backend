@@ -1,12 +1,7 @@
 package com.inholland.bank.controller;
 
 import com.inholland.bank.model.Transaction;
-import com.inholland.bank.model.dto.TransactionDTO;
-import com.inholland.bank.model.dto.TransactionFilterDTO;
-import com.inholland.bank.model.dto.TransferRequestDTO;
-import com.inholland.bank.model.dto.AtmDepositRequestDTO;
-import com.inholland.bank.model.dto.AtmWithdrawRequestDTO;
-import com.inholland.bank.model.dto.TransferResponseDTO;
+import com.inholland.bank.model.dto.*;
 import com.inholland.bank.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -35,13 +30,13 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<TransactionDTO>> getAllTransactions(
+    public ResponseEntity<Page<TransactionResponseDTO>> getAllTransactions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         try {
             Pageable pageable = PageRequest.of(page, size);
-            Page<TransactionDTO> result = transactionService.getAllTransactions(pageable);
+            Page<TransactionResponseDTO> result = transactionService.getAllTransactions(pageable);
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
