@@ -7,7 +7,7 @@ Feature: Transfer Funds
     And I get the IBAN of customer 3's CHECKING account
     When I transfer 10.00 from the CHECKING to the CHECKING account
     Then the transfer response should have status code 201
-    And the response should confirm the transfer was completed
+    And the response should have status "success" and message "Transfer completed."
 
   Scenario: Transfer fails due to insufficient funds
     Given I am logged in as an employee for transfer
@@ -16,7 +16,7 @@ Feature: Transfer Funds
     And I get the IBAN of customer 3's CHECKING account
     When I attempt to transfer 1000.00 from the CHECKING to the CHECKING account
     Then the transfer response should have status code 400
-    And the response should contain "Insufficient funds"
+    And the response should have status "error" and message "Transfer failed: Insufficient funds for this transaction."
 
   Scenario: Transfer fails due to negative amount
     Given I am logged in as an employee for transfer
@@ -24,7 +24,7 @@ Feature: Transfer Funds
     And I get the IBAN of customer 3's CHECKING account
     When I attempt to transfer -50.00 from the CHECKING to the CHECKING account
     Then the transfer response should have status code 400
-    Then the response should contain "Amount must be provided and greater than zero."
+    And the response should have status "error" and message "Transfer failed: Amount must be provided and greater than zero."
 
   Scenario: View transaction history for a customer
     Given I am logged in as an employee for transfer
