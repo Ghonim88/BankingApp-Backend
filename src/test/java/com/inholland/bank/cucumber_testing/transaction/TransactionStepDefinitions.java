@@ -3,6 +3,7 @@ package com.inholland.bank.cucumber_testing.transaction;
 import com.inholland.bank.cucumber_testing.CommonStepDefinitions;
 import com.jayway.jsonpath.JsonPath;
 import io.cucumber.java.en.*;
+import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.*;
@@ -24,6 +25,7 @@ public class TransactionStepDefinitions {
 
     private final String baseUrl = "http://localhost:8080/";
     private String jwtToken;
+    private Long initiatorId;
     private String senderIban;
     private String receiverIban;
     private ResponseEntity<String> response;
@@ -39,6 +41,12 @@ public class TransactionStepDefinitions {
         assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
 
         jwtToken = JsonPath.read(loginResponse.getBody(), "$.token");
+        initiatorId = Long.parseLong(getUserIdFromJwt(jwtToken));
+    }
+    private String getUserIdFromJwt(String token) {
+        String[] parts = token.split("\\.");
+        String payload = new String(java.util.Base64.getDecoder().decode(parts[1]));
+        return JsonPath.read(payload, "$.userId").toString();
     }
 
     @Given("two customers with verified accounts exist")
@@ -73,13 +81,20 @@ public class TransactionStepDefinitions {
             {
               "fromIban": "%s",
               "toIban": "%s",
-              "amount": %.2f
+              "amount": %.2f,
+              "initiatorId": %d
             }
-            """, senderIban, receiverIban, amount);
+            """, senderIban, receiverIban, amount, initiatorId.longValue());
+        JSONObject payload = new JSONObject();
+        payload.put("fromIban", senderIban);
+        payload.put("toIban", receiverIban);
+        payload.put("amount", amount);
+        payload.put("initiatorId", initiatorId);
 
+        System.out.println("Transfer JSON: " + transferJson);
         HttpHeaders headers = getAuthHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> entity = new HttpEntity<>(transferJson, headers);
+        HttpEntity<String> entity = new HttpEntity<>(payload.toString(), headers);
 
         try {
             response = restTemplate.postForEntity(baseUrl + "api/transactions/transfer", entity, String.class);
