@@ -1,16 +1,19 @@
-Feature: ATM Transactions
+Feature: ATM functional tests
 
-  Scenario: Deposit funds successfully
-    Given an account exists with balance 100.00
-    When I deposit 50.00 into the account
-    Then the new balance should be 150.00
+  Scenario: Successful deposit and withdrawal
+    Given I am logged in as an employee for ATM
+    And I select an existing CHECKING account for customer 2
+    When I deposit 500.00 into the ATM
+    Then the ATM response should show new balance 1000.00
 
-  Scenario: Withdraw funds successfully
-    Given an account exists with balance 100.00
-    When I withdraw 30.00 from the account
-    Then the new balance should be 70.00
+  Scenario: Simple withdrawal
+    Given I am logged in as an employee for ATM
+    And I select an existing CHECKING account for customer 2
+    When I withdraw 100.00 from the ATM
+    Then the ATM response should show new balance 900.00
 
-  Scenario: Attempt to withdraw more than allowed overdraft
-    Given an account exists with balance 100.00
-    When I withdraw 500.00 from the account
-    Then I should receive an insufficient funds error
+  Scenario: Withdrawal exceeding balance
+    Given I am logged in as an employee for ATM
+    And I select an existing CHECKING account for customer 2
+    When I withdraw 2000.00 from the ATM
+    Then the ATM response should contain error message "Insufficient funds"

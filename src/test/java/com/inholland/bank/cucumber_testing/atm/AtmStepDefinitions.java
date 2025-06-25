@@ -1,115 +1,113 @@
 package com.inholland.bank.cucumber_testing.atm;
 
-import com.inholland.bank.model.*;
-import com.inholland.bank.repository.AccountRepository;
-import com.inholland.bank.repository.CustomerRepository;
-import com.inholland.bank.repository.TransactionRepository;
-import com.inholland.bank.service.TransactionService;
+import com.inholland.bank.cucumber_testing.CommonStepDefinitions;
+import com.jayway.jsonpath.JsonPath;
 import io.cucumber.java.en.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.UUID;
-
+import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AtmStepDefinitions {
 
     @Autowired
-    private CustomerRepository customerRepository;
+    private RestTemplate restTemplate;
 
     @Autowired
-    private AccountRepository accountRepository;
+    private CommonStepDefinitions commonSteps;
 
-    @Autowired
-    private TransactionRepository transactionRepository;
+    private final String baseUrl = "http://localhost:8080/";
+    private String jwtToken;
+    private Long selectedAccountId;
+    private ResponseEntity<String> response;
 
-    @Autowired
-    private TransactionService transactionService;
+    @Given("I am logged in as an employee for ATM")
+    public void i_am_logged_in_as_employee() {
+        String loginBody = "{\"email\": \"john@gmail.com\", \"password\": \"Password11!\"}";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> entity = new HttpEntity<>(loginBody, headers);
 
-    private Account account;
-    private Exception lastException;
-    private BigDecimal depositAmount;
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(baseUrl + "auth/login", entity, String.class);
+        assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
 
-    @Given("an account exists with balance {double}")
-    public void an_account_exists_with_balance(Double balance) {
-        // Create customer
-        Customer customer = new Customer();
-        customer.setEmail("test" + UUID.randomUUID() + "@example.com");
-        customer.setPassword("password");
-        customer.setFirstName("John");
-        customer.setLastName("Doe");
-        customer.setPhoneNumber(UUID.randomUUID().toString().substring(0,10));
-        customer.setBsn(UUID.randomUUID().toString().substring(0,9));
-        customer.setAccountStatus(AccountStatus.Verified);
-        customer.setUserRole(UserRole.CUSTOMER);
-        customerRepository.save(customer);
-
-        // Create account
-        account = new Account();
-        account.setBalance(BigDecimal.valueOf(balance));
-        account.setIban("NL01INHO" + UUID.randomUUID().toString().substring(0,10));
-        account.setDailyTransferLimit(BigDecimal.valueOf(1000));
-        account.setAbsoluteTransferLimit(BigDecimal.valueOf(-500));
-        account.setAccountType(AccountType.CHECKING);
-        account.setCustomer(customer);
-        accountRepository.save(account);
+        jwtToken = JsonPath.read(loginResponse.getBody(), "$.token");
     }
 
-    @When("I deposit {double} into the account")
-    public void i_deposit_into_the_account(Double amount) {
-        lastException = null;
-        depositAmount = BigDecimal.valueOf(amount);
-        try {
-            account.setBalance(account.getBalance().add(depositAmount));
-            accountRepository.save(account);
+    @Given("I select an existing CHECKING account for customer {int}")
+    public void select_existing_checking_account(int customerId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(jwtToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
 
-            // Refresh after update
-            account = accountRepository.findById(account.getAccountId()).orElseThrow();
-        } catch (Exception e) {
-            lastException = e;
+        ResponseEntity<String> response = restTemplate.exchange(
+                baseUrl + "accounts/customer/" + customerId,
+                HttpMethod.GET,
+                entity,
+                String.class
+        );
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        List<Integer> accountIds = JsonPath.read(response.getBody(), "$[?(@.accountType == 'CHECKING')].accountId");
+        assertFalse(accountIds.isEmpty(), "No CHECKING account found for customer " + customerId);
+        selectedAccountId = accountIds.get(0).longValue();
+    }
+
+    @When("I deposit {double} into the ATM")
+    public void depositIntoAtm(Double amount) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("accountId", selectedAccountId);
+        body.put("amount", amount);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(jwtToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+        try {
+            response = restTemplate.postForEntity(baseUrl + "api/transactions/atm/deposit", entity, String.class);
+            commonSteps.setResponse(response);
+        } catch (HttpClientErrorException e) {
+            response = new ResponseEntity<>(e.getResponseBodyAsString(), e.getStatusCode());
+            commonSteps.setResponse(response);
         }
     }
 
-    @When("I withdraw {double} from the account")
-    public void i_withdraw_from_the_account(Double amount) {
-        lastException = null;
+    @When("I withdraw {double} from the ATM")
+    public void withdrawFromAtm(Double amount) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("accountId", selectedAccountId);
+        body.put("amount", amount);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(jwtToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
         try {
-            // Create dummy destination account to simulate withdrawal
-            Account dummyDestination = new Account();
-            dummyDestination.setBalance(BigDecimal.ZERO);
-            dummyDestination.setIban("NL01INHO" + UUID.randomUUID().toString().substring(0,10));
-            dummyDestination.setDailyTransferLimit(BigDecimal.valueOf(1000));
-            dummyDestination.setAbsoluteTransferLimit(BigDecimal.valueOf(-500));
-            dummyDestination.setAccountType(AccountType.CHECKING);
-            dummyDestination.setCustomer(account.getCustomer());
-            accountRepository.save(dummyDestination);
-
-            Transaction transaction = new Transaction();
-            transaction.setFromAccount(account);
-            transaction.setToAccount(dummyDestination);
-            transaction.setTransactionAmount(BigDecimal.valueOf(amount));
-            transaction.setCreatedAt(LocalDateTime.now());
-            transactionService.transferFunds(transaction);
-
-            // Refresh account after transaction
-            account = accountRepository.findById(account.getAccountId()).orElseThrow();
-        } catch (Exception e) {
-            lastException = e;
+            response = restTemplate.postForEntity(baseUrl + "api/transactions/atm/withdraw", entity, String.class);
+            commonSteps.setResponse(response);
+        } catch (HttpClientErrorException e) {
+            response = new ResponseEntity<>(e.getResponseBodyAsString(), e.getStatusCode());
+            commonSteps.setResponse(response);
         }
     }
 
-    @Then("the new balance should be {double}")
-    public void the_new_balance_should_be(Double expectedBalance) {
-        assertEquals(BigDecimal.valueOf(expectedBalance), account.getBalance().setScale(1, BigDecimal.ROUND_HALF_UP));
+    @Then("the ATM response should show new balance {double}")
+    public void checkNewBalance(Double expectedBalance) {
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        BigDecimal balance = new BigDecimal(JsonPath.read(response.getBody(), "$.newBalance").toString());
+        assertEquals(0, balance.compareTo(BigDecimal.valueOf(expectedBalance)));
     }
 
-    @Then("I should receive an insufficient funds error")
-    public void i_should_receive_insufficient_funds_error() {
-        assertNotNull(lastException);
-        assertTrue(lastException.getClass().getSimpleName().contains("InsufficientFundsException"));
+    @Then("the ATM response should contain error message {string}")
+    public void checkErrorMessage(String expectedMessage) {
+        assertNotEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains(expectedMessage), "Expected error message not found in response");
     }
 }
