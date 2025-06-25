@@ -231,6 +231,11 @@ public class TransactionService {
         transaction.setCreatedAt(LocalDateTime.now());
         transaction.setTransactionType(TransactionType.ATM_DEPOSIT);
 
+        // Set initiator as account owner
+        if (account.getCustomer() != null) {
+            transaction.setInitiator(account.getCustomer());
+        }
+
         transactionExecutor.executeTransaction(transaction);
 
         return account.getBalance();
@@ -253,6 +258,11 @@ public class TransactionService {
         transaction.setTransactionAmount(amount.negate()); // withdrawals show as negative
         transaction.setCreatedAt(LocalDateTime.now());
         transaction.setTransactionType(TransactionType.ATM_WITHDRAWAL);
+
+        // Set initiator as account owner
+        if (account.getCustomer() != null) {
+            transaction.setInitiator(account.getCustomer());
+        }
 
         transactionExecutor.executeTransaction(transaction);
 
