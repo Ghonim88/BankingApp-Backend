@@ -1,5 +1,6 @@
 package com.inholland.bank.model.dto;
 
+import com.inholland.bank.model.TransactionType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,5 +17,6 @@ public class TransactionDTO {
     private String receiverIban;
     private BigDecimal transactionAmount;
     private LocalDateTime createdAt;
-
+    private TransactionType transactionType;
+    private Long initiatorId;
 }

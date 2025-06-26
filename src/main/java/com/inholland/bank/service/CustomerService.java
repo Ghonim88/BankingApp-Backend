@@ -8,6 +8,8 @@ import com.inholland.bank.model.AccountStatus;
 import com.inholland.bank.model.AccountType;
 import com.inholland.bank.model.dto.CustomerDTO;
 import com.inholland.bank.model.dto.CustomerIbanDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.inholland.bank.model.Customer;
 import com.inholland.bank.repository.CustomerRepository;
@@ -66,18 +68,14 @@ public class CustomerService {
     return convertToDTO(updated);
   }
 
-  public List<CustomerDTO> getAllCustomers() {
-    List<Customer> customers = customerRepository.findAll();
-    return customers.stream()
-            .map(this::convertToDTO)
-            .toList();
+  public Page<CustomerDTO> getAllCustomers(Pageable pageable) {
+    return customerRepository.findAll(pageable)
+            .map(this::convertToDTO);
   }
 
-  public List<CustomerDTO> getCustomersByStatus(AccountStatus status) {
-    List<Customer> customers = customerRepository.findByAccountStatus(status);
-    return customers.stream()
-            .map(this::convertToDTO)
-            .toList();
+  public Page<CustomerDTO> getCustomersByStatus(AccountStatus status, Pageable pageable) {
+    return customerRepository.findByAccountStatus(status, pageable)
+            .map(this::convertToDTO);
   }
 
   private CustomerDTO convertToDTO(Customer customer) {
